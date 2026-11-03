@@ -1,0 +1,1792 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141716">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DAD MODE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>DAD MODE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one 480px thumb-first column, scoreboard numerals on calm charcoal cards, fixed tab bar within thumb reach */
+:root{
+  --bg:#141716; --surface:#1b1f1e; --surface-2:#252a28; --line:#2e3431;
+  --fg:#efede5; --muted:#9aa29c; --faint:#69716c;
+  --green:#8db088; --green-hi:#b5d1ab; --green-ink:#0f170e; --green-wash:rgba(141,176,136,.13); --green-line:rgba(141,176,136,.35);
+  --amber:#d9b66c; --clay:#d38d76;
+  --display:"Barlow Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+  --body:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --r:20px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{max-width:480px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px calc(104px + env(safe-area-inset-bottom,0px))}
+#view{display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num{font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums;line-height:.92;letter-spacing:.01em}
+.muted{color:var(--muted)} .faint{color:var(--faint)} .small{font-size:13px} .tiny{font-size:12px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;align-items:center}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2>*{min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.card.flat{background:transparent}
+.sec-title{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.04em;text-transform:uppercase;line-height:1}
+.est{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(217,182,108,.4);border-radius:6px;padding:1px 5px;font-weight:600;vertical-align:middle}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface)}
+.chip.on{border-color:var(--green-line);color:var(--green-hi);background:var(--green-wash)}
+button.chip{cursor:pointer}
+
+/* Buttons */
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:600;font-size:15px;background:var(--surface-2);color:var(--fg);min-height:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.primary{background:var(--green);color:var(--green-ink)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.danger{background:transparent;border:1px solid rgba(211,141,118,.5);color:var(--clay)}
+.btn.small{min-height:36px;padding:7px 12px;font-size:13px;border-radius:11px}
+.btn.block{width:100%}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.icon-btn:focus-visible,.check:focus-within{outline:2px solid var(--green-hi);outline-offset:2px}
+.icon-btn{appearance:none;border:1px solid var(--line);background:var(--surface);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;cursor:pointer;color:var(--fg)}
+.icon-btn svg{width:20px;height:20px}
+.link{white-space:nowrap;appearance:none;background:none;border:0;color:var(--green-hi);font-weight:600;font-size:13px;cursor:pointer;padding:4px 0}
+
+/* Bars */
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;position:relative}
+.bar>i{display:block;height:100%;background:var(--green);border-radius:inherit;transition:width .5s ease}
+.bar.amber>i{background:var(--amber)}
+
+/* Header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;padding-top:6px}
+.brand{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:.06em;line-height:1}
+.brand b{color:var(--green)}
+.tagline{color:var(--muted);font-size:13px;margin-top:-6px}
+
+/* Weight hero */
+.hero-w{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
+.hero-w .big{font-size:64px}
+.hero-w .big small{font-size:22px;color:var(--muted);margin-left:3px}
+.kv{display:flex;gap:14px}
+.kv div{display:flex;flex-direction:column;gap:2px}
+.kv .num{font-size:21px}
+.track{position:relative;height:10px;border-radius:99px;background:var(--surface-2)}
+.track>i{position:absolute;left:0;top:0;bottom:0;background:var(--green);border-radius:99px;transition:width .6s ease}
+.track .tick{position:absolute;top:-4px;width:2px;height:18px;background:var(--line);border-radius:2px}
+.track .tick.hit{background:var(--green-hi)}
+.track-labels{position:relative;height:16px;font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.track-labels span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.track-labels span:first-child{transform:none}
+.track-labels span:last-child{transform:translateX(-100%)}
+
+/* Mission */
+.mission{background:var(--green-wash);border-color:var(--green-line)}
+.mission .m-title{font-family:var(--display);font-weight:700;font-size:34px;line-height:.95;text-transform:uppercase;letter-spacing:.02em}
+.mission .m-label{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.18em;color:var(--green-hi)}
+.done-pill{display:inline-flex;align-items:center;gap:6px;color:var(--green-ink);background:var(--green-hi);border-radius:99px;padding:4px 10px;font-weight:700;font-size:12px}
+
+/* Coach */
+.coach{flex-direction:row;gap:14px;align-items:flex-start}
+.coach .avatar{flex:none;width:40px;height:40px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:var(--green-hi);letter-spacing:.04em}
+.coach .msg{font-size:15.5px;line-height:1.4}
+
+/* Tiles */
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tile .num.v{font-size:32px}
+.tile .of{font-size:12px;color:var(--muted)}
+.tile-head{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.ring{flex:none}
+.ring circle{fill:none}
+.mini-btns{display:flex;gap:6px}
+.mini-btns .btn{flex:1;min-height:34px;padding:6px 4px;font-size:13px;border-radius:10px}
+
+/* Checklist */
+.checks{display:flex;flex-direction:column}
+.check{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--line);cursor:pointer}
+.check:first-child{border-top:0}
+.check input{position:absolute;opacity:0;pointer-events:none}
+.box{flex:none;width:24px;height:24px;border-radius:8px;border:1.5px solid var(--faint);display:grid;place-items:center;transition:all .15s}
+.box svg{width:14px;height:14px;opacity:0;stroke:var(--green-ink)}
+.check input:checked + .box{background:var(--green);border-color:var(--green)}
+.check input:checked + .box svg{opacity:1}
+.check .lbl{flex:1;font-size:14.5px}
+.check input:checked ~ .lbl{color:var(--muted)}
+.auto{font-size:10.5px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+
+/* Week strip */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end}
+.wday{display:flex;flex-direction:column;align-items:center;gap:6px}
+.wcol{width:100%;height:64px;background:var(--surface-2);border-radius:8px;position:relative;overflow:hidden}
+.wcol i{position:absolute;left:0;right:0;bottom:0;background:var(--green);border-radius:8px 8px 0 0}
+.wcol.future{opacity:.35}
+.wday .d{font-size:11px;color:var(--muted);font-weight:600}
+.wday.today .d{color:var(--green-hi)}
+.wday .dot{width:6px;height:6px;border-radius:50%;background:transparent}
+.wday .dot.on{background:var(--amber)}
+
+/* Snack */
+.crave{appearance:none;border:0;cursor:pointer;width:100%;border-radius:24px;padding:26px 18px;background:var(--green);color:var(--green-ink);display:flex;flex-direction:column;align-items:center;gap:4px}
+.crave .num{font-size:34px;text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+.crave span{font-size:13px;font-weight:600;opacity:.8}
+.opt{appearance:none;text-align:left;cursor:pointer;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.opt b{font-size:16px}
+.opt span{font-size:13px;color:var(--muted)}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .grow{flex:1;min-width:0}
+.item .t{font-weight:600;font-size:14.5px}
+.item .s{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hbars{display:flex;flex-direction:column;gap:8px}
+.hbar{display:grid;grid-template-columns:96px 1fr 28px;gap:10px;align-items:center;font-size:13px}
+.hbar .bar{height:10px}
+.hbar .c{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.breath{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
+.breath-box{width:120px;height:120px;border-radius:24px;border:2px solid var(--green);display:grid;place-items:center;transition:transform 4s linear, background 4s linear}
+.breath-box.in{transform:scale(1.25);background:var(--green-wash)}
+.breath-box.out{transform:scale(.85)}
+
+/* Food */
+.datenav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.meal-h{display:flex;justify-content:space-between;align-items:center}
+.meal-h h3{font-family:var(--display);font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+.entry{appearance:none;background:none;border:0;border-top:1px solid var(--line);width:100%;text-align:left;display:flex;gap:10px;align-items:center;padding:10px 0;cursor:pointer}
+.entry .grow{flex:1;min-width:0}
+.entry .t{font-size:14.5px;font-weight:500;overflow-wrap:anywhere}
+.entry .s{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty{font-size:13px;color:var(--faint);padding:4px 0}
+.pick{appearance:none;cursor:pointer;background:var(--surface-2);border:0;border-radius:12px;padding:10px 12px;text-align:left;display:flex;justify-content:space-between;gap:10px;width:100%;align-items:center}
+.pick .t{font-size:14px;font-weight:500}
+.pick .s{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.input,select.input,textarea.input{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;min-height:46px}
+textarea.input{min-height:90px;resize:vertical;font-size:14px}
+.input:focus{outline:2px solid var(--green);outline-offset:0;border-color:transparent}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;appearance:none;border:0;background:transparent;border-radius:9px;padding:8px 6px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;min-height:36px}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.scale{display:flex;gap:6px}
+.scale label{flex:1;cursor:pointer}
+.scale input{position:absolute;opacity:0;pointer-events:none}
+.scale span{display:grid;place-items:center;height:40px;border-radius:10px;background:var(--surface-2);font-weight:700;font-family:var(--display);font-size:18px;color:var(--muted)}
+.scale input:checked + span{background:var(--green);color:var(--green-ink)}
+.scale input:focus-visible + span{outline:2px solid var(--green-hi)}
+.scale-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--faint)}
+
+/* Train */
+details.ex{border-top:1px solid var(--line)}
+details.ex:first-of-type{border-top:0}
+details.ex summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:10px;padding:11px 0;font-size:14.5px}
+details.ex summary::-webkit-details-marker{display:none}
+details.ex summary .r{color:var(--green-hi);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+details.ex .how{font-size:13px;color:var(--muted);padding:0 0 12px;display:flex;flex-direction:column;gap:4px}
+.wk-plan{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wk-plan div{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.wk-plan .b{width:100%;aspect-ratio:1;max-width:100%;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;color:var(--faint)}
+.wk-plan .b.s{color:var(--fg)}
+.wk-plan .b.done{background:var(--green);color:var(--green-ink)}
+.wk-plan .b.skip{background:transparent;border:1px dashed var(--faint)}
+.wk-plan .today .b{outline:2px solid var(--green-hi);outline-offset:1px}
+.wk-plan .today{color:var(--green-hi)}
+.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .num{font-size:28px}
+.safety li{margin-bottom:6px}
+.safety{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted)}
+
+/* Progress */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--body)}
+.mile{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mile div{border:1px solid var(--line);border-radius:14px;padding:10px 4px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.mile .num{font-size:22px}
+.mile div.hit{border-color:var(--green-line);background:var(--green-wash)}
+.mile div.hit .num{color:var(--green-hi)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:6px 0}
+td{padding:8px 0;border-top:1px solid var(--line)}
+td.r,th.r{text-align:right}
+.up{color:var(--amber)} .down{color:var(--green-hi)}
+.summary li{margin-bottom:6px}
+.summary{margin:0;padding-left:18px;font-size:14px}
+.rec{background:var(--green-wash);border:1px solid var(--green-line);border-radius:14px;padding:12px 14px;font-size:14px}
+.callout{background:var(--surface-2);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--muted)}
+
+/* Tabs */
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(20,23,22,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+#tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{appearance:none;border:0;background:none;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 10px;font-size:10.5px;font-weight:600;letter-spacing:.04em;cursor:pointer}
+.tab svg{width:23px;height:23px}
+.tab.on{color:var(--green-hi)}
+
+/* Sheet */
+#sheet{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end}
+#sheet .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+#sheet .panel{position:relative;background:var(--surface);border-top:1px solid var(--line);border-radius:24px 24px 0 0;max-height:90%;overflow-y:auto;width:100%;max-width:480px;margin:0 auto;padding:10px max(18px,env(safe-area-inset-left,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;animation:up .22s ease}
+#sheet .grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 4px}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+
+/* Player */
+#player{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto}
+#player .in{max-width:480px;margin:0 auto;min-height:100%;padding:calc(14px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+.p-ex{font-family:var(--display);font-weight:700;font-size:44px;line-height:.95;text-transform:uppercase}
+.p-reps{font-family:var(--display);font-weight:600;font-size:76px;line-height:.9;color:var(--green-hi);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px}
+.dots i{flex:1;height:5px;border-radius:9px;background:var(--surface-2)}
+.dots i.on{background:var(--green)}
+.dots i.cur{background:var(--green-hi)}
+.timer-big{font-family:var(--display);font-weight:600;font-size:110px;line-height:.9;text-align:center;font-variant-numeric:tabular-nums}
+
+/* Toast + celebrate */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:11px 16px;border-radius:14px;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.4);text-align:center}
+#celebrate{position:fixed;inset:0;z-index:70;background:rgba(10,12,11,.92);display:grid;place-items:center;padding:24px}
+.cel{max-width:380px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.cel .num{font-size:96px;color:var(--green-hi)}
+.cel-ring{width:150px;height:150px;border-radius:50%;border:3px solid var(--green);display:grid;place-items:center;animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.vh{position:absolute!important;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:5px;color:var(--fg)}
+.banner{background:rgba(211,141,118,.12);border:1px solid rgba(211,141,118,.4);color:var(--clay);border-radius:14px;padding:10px 12px;font-size:13px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app"><main id="view" aria-live="polite"></main></div>
+<nav id="tabs" aria-label="Sections"><div class="in" id="tabsIn"></div></nav>
+<div id="sheet" hidden><div class="backdrop" data-action="closeSheet"></div><div class="panel" id="sheetPanel" role="dialog" aria-modal="true"></div></div>
+<div id="player" hidden></div>
+<div id="celebrate" hidden></div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+'use strict';
+/* ---------- Utilities ---------- */
+const KEY='dadmode.v1', DAY=864e5;
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const p2=n=>String(n).padStart(2,'0');
+const dk=d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const parseDk=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const todayKey=()=>dk(new Date());
+const addDays=(k,n)=>{const d=parseDk(k);d.setDate(d.getDate()+n);return dk(d)};
+const daysBetween=(a,b)=>Math.round((parseDk(b)-parseDk(a))/DAY);
+const weekStart=k=>{const d=parseDk(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return dk(d)};
+const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate=k=>{const d=parseDk(k);return `${d.getDate()} ${MON[d.getMonth()]}`};
+const fmtDay=k=>{const d=parseDk(k);return `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`};
+const kg1=v=>(Math.round(v*10)/10).toFixed(1);
+const n0=v=>Math.round(v||0).toLocaleString('en-GB');
+const sum=(arr,f)=>(arr||[]).reduce((a,x)=>a+(+x[f]||0),0);
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:null};
+
+/* ---------- Content ---------- */
+const MILESTONES=[102.5,100,97.5,95];
+const MILE_MSG={
+  102.5:'First 2.5kg gone. The habits are working. Keep doing exactly this.',
+  100:'Under 100kg. A real landmark. Take a moment, you earned this one.',
+  97.5:'7.5kg down. Stairs, pram, kickabouts: everything feels a bit easier now.',
+  95:'95kg. Ten kilos lighter than where you started. Fitter, stronger dad.'
+};
+const EX={
+  squat:{name:'Bodyweight squats',how:'Feet shoulder-width, sit hips back and down as if to a chair, chest up, knees tracking over toes. Stand tall and squeeze.',easier:'Squat down to a chair or sofa and stand back up.',harder:'Hold the kettlebell at your chest (goblet squat).'},
+  kbdl:{name:'Kettlebell deadlifts',how:'Bell between your feet. Push hips back with a flat back, grip the handle, drive through your heels to stand tall. Squeeze glutes at the top.',easier:'Lower only to knee height.',harder:'Pause for 2 seconds at the bottom.'},
+  pushup:{name:'Incline push-ups',how:'Hands on a kitchen worktop, table or stair. Body straight from head to heels, lower your chest to the edge, push away.',easier:'Use a higher surface such as the wall.',harder:'Use a lower surface such as a stair.'},
+  plank:{name:'Plank',how:'Forearms on the mat, elbows under shoulders, body straight from head to heels. Breathe steadily, don\'t hold your breath.',easier:'Drop to your knees.',harder:'Add 10 seconds.',secs:20},
+  bridge:{name:'Glute bridges',how:'Lie on your back, knees bent, feet flat. Drive your hips up, squeeze your glutes, lower slowly.',easier:'Use a smaller range of movement.',harder:'Rest the kettlebell on your hips.'},
+  lunge:{name:'Reverse lunges',how:'Step one foot back and lower the back knee towards the floor. Push through the front heel to return.',easier:'Hold a chair for balance and go less deep.',harder:'Hold the kettlebell at your chest.'},
+  row:{name:'Kettlebell rows',how:'One hand and knee on the sofa, back flat. Pull the bell up to your hip, elbow close to your side, lower under control.',easier:'Slower, smaller pulls.',harder:'Pause at the top for a second.'},
+  birddog:{name:'Bird dogs',how:'On all fours. Reach out opposite arm and leg, hold for a second, return. Keep your hips level.',easier:'Move only the leg or only the arm.',harder:'Hold each rep for 3 seconds.'},
+  goblet:{name:'Goblet squats',how:'Hold the kettlebell by the horns at your chest. Sit down between your heels, elbows inside your knees, chest up. Stand tall.',easier:'Squat down to a chair.',harder:'Take 3 seconds on the way down.'},
+  swing:{name:'Kettlebell swings',how:'It\'s a hip hinge, not a squat. Hike the bell back between your legs, then snap your hips forward so it floats to chest height. Arms are just hooks; the power comes from your hips.',easier:'Do kettlebell deadlifts with a fast stand-up instead.',harder:'Add 3 reps and squeeze glutes hard at the top.'},
+  deadbug:{name:'Dead bugs',how:'On your back, arms up, knees bent over your hips. Slowly lower opposite arm and leg while your lower back stays pressed into the mat.',easier:'Move just the legs.',harder:'Hold the kettlebell above your chest with both hands.'},
+  carry:{name:'Suitcase carry',how:'Kettlebell in one hand by your side. Stand tall and walk slowly round the room without leaning. Swap hands halfway.',easier:'Shorter walk, or stand still holding it.',harder:'March slowly with high knees.'}
+};
+const WORKOUTS={
+  A:{name:'Workout A',items:[['squat',['12 reps','15 reps','15 reps']],['kbdl',['12 reps','15 reps','15 reps']],['pushup',['10 reps','12 reps','12 reps']],['plank',[20,30,40]],['bridge',['15 reps','20 reps','20 reps']]]},
+  B:{name:'Workout B',items:[['lunge',['8 each leg','10 each leg','10 each leg']],['row',['10 each arm','12 each arm','12 each arm']],['pushup',['10 reps','12 reps','12 reps']],['birddog',['10 each side','12 each side','12 each side']],['bridge',['15 reps','20 reps','20 reps']]]},
+  C:{name:'Workout C',items:[['goblet',['10 reps','10 reps','12 reps']],['swing',['12 reps','12 reps','15 reps']],['pushup',['10 reps','12 reps','12 reps']],['deadbug',['8 each side','8 each side','10 each side']],['carry',[60,60,80]]]}
+};
+const ACTIVITIES=['Walk','Family walk','Five-a-side football','Cycling','Swimming','Run/walk intervals','Padel or tennis','Golf','Mobility / stretching','Other'];
+const SNACKS=[
+  {id:'yog',name:'Greek yoghurt with honey',kcal:180,p:15,fits:['hungry','sweet']},
+  {id:'pud',name:'Protein pudding',kcal:150,p:20,fits:['sweet','hungry']},
+  {id:'fpb',name:'Fruit and peanut butter',kcal:200,p:6,fits:['hungry','sweet']},
+  {id:'dc',name:'Dark chocolate, 2 squares',kcal:115,p:2,fits:['sweet']},
+  {id:'cs',name:'Chocolate-covered strawberries (5)',kcal:140,p:2,fits:['sweet']},
+  {id:'egg',name:'Two boiled eggs',kcal:155,p:13,fits:['hungry']},
+  {id:'shake',name:'Protein shake with water',kcal:120,p:24,fits:['hungry']},
+  {id:'pop',name:'Popcorn, 20g bag',kcal:95,p:3,fits:['hungry','sweet']},
+  {id:'cott',name:'Cottage cheese, 150g pot',kcal:150,p:18,fits:['hungry']},
+  {id:'rice',name:'Rice cakes (2) with a light topping',kcal:110,p:3,fits:['hungry','sweet']},
+  {id:'bisc',name:'Two biscuits, plated',kcal:140,p:2,fits:['sweet']}
+];
+const REASONS={
+  hungry:{label:'Physically hungry',sub:'Stomach rumbling, last meal was 3+ hours ago'},
+  bored:{label:'Bored',sub:'Between tasks, restless, scrolling'},
+  stressed:{label:'Stressed',sub:'Busy, tense or knackered'},
+  sweet:{label:'Craving something sweet',sub:'Just fancy chocolate or a biscuit'}
+};
+const BORED_ACTS=['Walk round the block, 10 minutes','Kettlebell break: 10 deadlifts + 10 squats, twice','Make a brew and drink it outside','Empty the dishwasher or tidy one surface','Stretch on the mat for 5 minutes'];
+const STRESS_ACTS=['10-minute walk, phone in your pocket','3 minutes of stretching on the mat','Write down what\'s stressing you and one next step'];
+const MEALS=[['breakfast','Breakfast'],['lunch','Lunch'],['dinner','Dinner'],['snacks','Snacks']];
+const EXAMPLES={
+  breakfast:[['Three eggs on wholemeal toast',420,26,['Eggs','Wholemeal bread']],['Greek yoghurt, berries and oats',380,25,['Greek yoghurt','Frozen berries','Oats']]],
+  lunch:[['Chicken rice bowl',600,45,['Chicken breast','Rice (microwave pouches)','Mixed veg','Sweet chilli or soy sauce']],['Chicken salad wrap',450,35,['Chicken breast','Wholemeal wraps','Salad leaves','Tomatoes','Light mayo']],['Tuna jacket potato',480,35,['Baking potatoes','Tinned tuna','Sweetcorn','Light mayo']]],
+  dinner:[['Chicken, potatoes and vegetables',620,50,['Chicken breast','New potatoes','Broccoli','Carrots']],['Salmon, rice and broccoli',650,40,['Salmon fillets','Rice (microwave pouches)','Broccoli']],['Lean mince chilli with rice',650,45,['5% beef mince','Kidney beans','Chopped tomatoes','Onions','Peppers','Rice (microwave pouches)']],['Homemade fajitas (2 wraps)',620,42,['Chicken breast','Wholemeal wraps','Peppers','Onions','Fajita seasoning','Light soured cream']]]
+};
+const HABITS=[['steps','Hit step target'],['activity','Complete planned workout or activity'],['meals','Eat three proper meals'],['plannedSnacks','Stick to planned snacks'],['noDesk','Avoid mindless desk snacking'],['protein','Hit protein target'],['water','Drink enough water'],['sleep','Get a reasonable night\'s sleep']];
+const ROTATION=[
+  'Consistency beats intensity. Two 20-minute sessions done beats an hour planned.',
+  'Protein at breakfast and lunch keeps the 3pm cravings quieter.',
+  'Plan your treat, then enjoy it. No guilt, no packet on the desk.',
+  'A walk with the pram counts. Every step counts.',
+  'You\'re not starting over. You\'re carrying on.',
+  'Try a glass of water before an afternoon snack. Sometimes that\'s all it was.',
+  'The goal: fit enough to chase a toddler round the park and still have energy left.'
+];
+
+/* ---------- Icons ---------- */
+const sv=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON={
+  today:sv('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>'),
+  snack:sv('<circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="10" r="1"/><circle cx="14.5" cy="8.5" r="1"/><circle cx="15" cy="14" r="1"/><circle cx="10" cy="15" r="1"/>'),
+  food:sv('<path d="M6 3v7a2 2 0 0 0 4 0V3"/><path d="M8 10v11"/><path d="M17 21V3c-2 1.5-3 4-3 7h3"/>'),
+  train:sv('<path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><path d="M7 8.5h10l1.4 3.6A6.6 6.6 0 1 1 5.6 12z"/>'),
+  progress:sv('<path d="M4 19h16"/><path d="M5 15l4-4 3 3 6-7"/><path d="M15 7h3v3"/>'),
+  gear:sv('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  tick:sv('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  left:sv('<path d="M15 5l-7 7 7 7"/>'),
+  right:sv('<path d="M9 5l7 7-7 7"/>'),
+  close:sv('<path d="M6 6l12 12M18 6 6 18"/>')
+};
+const TICK=`<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+
+/* ---------- State ---------- */
+let S, storageOK=true;
+function defaults(){
+  const t=todayKey();
+  return {version:1,settings:{name:'',age:30,heightCm:190.5,startDate:t,startWeight:105,target:100,stretch:95,kcal:2350,protein:165,waterMl:2500,steps:9000,workoutsPerWeek:2,rounds:2,restSec:45,rundown:true,phase:0},
+    days:{},weights:[],waist:[],scans:[],plans:{},shopChecked:{},shopExtra:{},cloud:{},workouts:[],snacks:[],favourites:[],reviews:[],milestones:{}};
+}
+function migrate(o){
+  const d=defaults();
+  o.settings=Object.assign(d.settings,o.settings||{});
+  ['days','milestones','plans','shopChecked','shopExtra','cloud'].forEach(k=>{if(!o[k]||typeof o[k]!=='object')o[k]={}});
+  ['weights','workouts','snacks','favourites','reviews','waist','scans'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});
+  return o;
+}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw){S=migrate(JSON.parse(raw));return}}catch(e){storageOK=false}
+  S=defaults();save();
+}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOK=false}}
+function save(){saveLocal();if(typeof schedulePush==='function')schedulePush()}
+const blankDay=()=>({steps:0,waterMl:0,habits:{},mission:false,roughNight:false,food:[],sleepHrs:null,activeKcal:null,rhr:null,healthAt:null});
+function getDay(k){return S.days[k]||blankDay()}
+function ensureDay(k){if(!S.days[k])S.days[k]=blankDay();const d=S.days[k];Object.assign(d,Object.assign(blankDay(),d));return d}
+
+/* ---------- Derived ---------- */
+function weightsSorted(){return [...S.weights].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)}
+function currentWeight(){const w=weightsSorted();return w.length?w[w.length-1].kg:S.settings.startWeight}
+function weekInfo(k){const d=daysBetween(S.settings.startDate,k);const n=Math.max(1,Math.floor(d/7)+1);return {n,label:n<=12?`${n} of 12`:`${n}`}}
+function planFor(k,D){
+  const wd=parseDk(k).getDay(), three=S.settings.workoutsPerWeek>=3, ph=phaseOf(k);
+  const slots=three?{1:0,3:1,5:2}:{1:0,4:1}, order=strengthOrder(ph), per=three?3:2, wn=weekInfo(k).n;
+  let p;
+  if(slots[wd]!==undefined){const sl=slots[wd];p={kind:'strength',w:(ph===1&&!three)?order[sl]:order[((wn-1)*per+sl)%order.length]}}
+  else p={kind:wd===0?'sunday':wd===6?'weekend':(!three&&wd===3)?'recovery':'walk'};
+  const r=S.settings.rounds;
+  const T={
+    strength:()=>({title:`Morning strength`,detail:`${WORKOUTS[p.w].name}, ${r} rounds, about 20 minutes. Ideally done before 9am.`}),
+    walk:()=>({title:'Walking',detail:'30–45 minutes out. A pram walk with the baby counts. Aim for your step target.'}),
+    recovery:()=>({title:'Active recovery',detail:'10 minutes of mobility on the mat, plus an easy walk.'}),
+    weekend:()=>({title:'Family walk or sport',detail:'Get out together. A long walk, a kickabout, or a game if you can get one in. Optional extra exercise.'}),
+    sunday:()=>({title:'Recovery and review',detail:'An easy walk, then 5 minutes on your weekly review.'})
+  };
+  if(D&&D.roughNight&&p.kind==='strength'){return {kind:'walk',swapped:p.w,title:'Easy walk',detail:`Swapped from ${WORKOUTS[p.w].name} after a rough night. 20–30 minutes is plenty today.`}}
+  return Object.assign(p,T[p.kind]());
+}
+const kcalOf=D=>sum(D.food,'kcal'), protOf=D=>sum(D.food,'protein');
+function autoHabit(k,D,key){
+  const s=S.settings;
+  switch(key){
+    case 'steps':return D.steps>=s.steps;
+    case 'activity':return !!D.mission;
+    case 'protein':return protOf(D)>=s.protein;
+    case 'water':return D.waterMl>=s.waterMl;
+    case 'sleep':{const h=sleepOf(D);return h!=null&&h>=7}
+    case 'meals':return ['breakfast','lunch','dinner'].every(m=>D.food.some(f=>f.meal===m));
+    default:return false;
+  }
+}
+const AUTO_KEYS=['steps','activity','protein','water','meals','sleep'];
+function habitDone(k,key){const D=getDay(k);const m=D.habits[key];if(m===true)return true;if(m===false)return false;return autoHabit(k,D,key)}
+function habitCount(k){return HABITS.filter(([h])=>habitDone(k,h)).length}
+function hasData(k){const D=S.days[k];return !!D&&(D.steps>0||D.waterMl>0||D.food.length>0||D.mission||Object.keys(D.habits).length>0)}
+function weekStats(ws){
+  const s=S.settings, t=todayKey(), days=[];
+  for(let i=0;i<7;i++){const k=addDays(ws,i);if(k<=t&&k>=s.startDate)days.push(k)}
+  const we=addDays(ws,6);
+  const wos=S.workouts.filter(w=>w.date>=ws&&w.date<=we);
+  const strength=wos.filter(w=>['A','B','C'].includes(w.type)&&w.status==='done').length;
+  const skipped=wos.filter(w=>w.status==='skipped').length;
+  const activeMin=wos.filter(w=>w.status==='done').reduce((a,w)=>a+(+w.minutes||0),0);
+  const stepVals=days.map(k=>getDay(k).steps).filter(v=>v>0);
+  const logged=days.filter(k=>getDay(k).food.length>0);
+  const onTarget=logged.filter(k=>kcalOf(getDay(k))<=s.kcal*1.1).length;
+  const protHit=logged.filter(k=>protOf(getDay(k))>=s.protein).length;
+  const tracked=days.filter(hasData);
+  const sleepVals=days.map(k=>sleepOf(getDay(k))).filter(v=>v!=null&&v>0);
+  const habitPct=days.length?days.reduce((a,k)=>a+habitCount(k),0)/(days.length*HABITS.length):0;
+  return {sleepAvg:avg(sleepVals),sleepDays:sleepVals.length,days,strength,skipped,activeMin,stepsAvg:avg(stepVals),stepDays:stepVals.length,logged:logged.length,onTarget,protHit,tracked:tracked.length,habitPct,wos};
+}
+function weeklyAverages(){
+  const g={};weightsSorted().forEach(w=>{const ws=weekStart(w.date);(g[ws]=g[ws]||[]).push(w.kg)});
+  return Object.keys(g).sort().map(ws=>({ws,avg:avg(g[ws]),n:g[ws].length}));
+}
+function trend(){const wa=weeklyAverages();if(wa.length<2)return null;const a=wa[wa.length-2],b=wa[wa.length-1];return {change:b.avg-a.avg}}
+
+
+/* ---------- Phases & workouts ---------- */
+const PHASES={
+  1:{name:'Foundation',weeks:'Weeks 1–4',focus:'Learn the moves and build the habit. Two rounds, easier versions whenever you need them.'},
+  2:{name:'Build',weeks:'Weeks 5–8',focus:'A few more reps, and Workout C joins the rotation. Aim for three rounds.'},
+  3:{name:'Strong',weeks:'Weeks 9–12',focus:'Use the harder versions where you can. Three rounds, longer holds.'}
+};
+function phaseOf(k){const o=+S.settings.phase||0;if(o)return o;const n=weekInfo(k||todayKey()).n;return n<=4?1:n<=8?2:3}
+function itemsFor(w,ph){
+  ph=ph||phaseOf();
+  return WORKOUTS[w].items.map(([id,vals])=>{const v=vals[ph-1];const secs=typeof v==='number'?v:null;
+    return {id,secs,reps:secs?(id==='carry'?`${secs} sec, swap hands halfway`:`${secs} sec`):v}});
+}
+function strengthOrder(ph){return ph>=2?['A','B','C']:['A','B']}
+
+/* ---------- Meal plan & shopping ---------- */
+let foodMode='diary', planWeek=0;
+function mealLibrary(meal){
+  const ex=(EXAMPLES[meal]||[]).map(([n,c,p,ing],i)=>({key:`ex:${meal}:${i}`,name:n,kcal:c,protein:p,ing:ing||[]}));
+  const fav=S.favourites.filter(f=>f.meal===meal||!['breakfast','lunch','dinner'].includes(f.meal)).map(f=>({key:`fav:${f.id}`,name:f.name,kcal:f.kcal,protein:f.protein,ing:f.ing||[]}));
+  const seen=new Set();return [...fav,...ex].filter(m=>{const k=m.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
+}
+function resolveMeal(key,meal){return mealLibrary(meal).find(m=>m.key===key)||null}
+function planWs(){return addDays(weekStart(todayKey()),7*planWeek)}
+function planFor7(ws){return (S.plans[ws]=S.plans[ws]||{})}
+function plannedToday(k){const ws=weekStart(k);const P7=S.plans[ws];return P7&&P7[k]?P7[k]:{}}
+function foodModeSeg(){return `<div class="seg" role="tablist">${[['diary','Diary'],['plan','Meal plan'],['shop','Shopping']].map(([m,l])=>`<button class="${foodMode===m?'on':''}" data-action="foodMode" data-m="${m}" role="tab" aria-selected="${foodMode===m}">${l}</button>`).join('')}</div>`}
+function viewPlan(){
+  const ws=planWs(), P7=S.plans[ws]||{};
+  const days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i));
+  const filled=days.reduce((a,d)=>a+['breakfast','lunch','dinner'].filter(m=>P7[d]&&P7[d][m]).length,0);
+  return `
+  <header class="top"><div><div class="eyebrow">Plan the week, shop once</div><div class="brand" style="font-size:30px">NUTRITION</div></div></header>
+  ${foodModeSeg()}
+  <section class="card">
+    <div class="row between"><div class="seg" style="width:190px">${[[0,'This week'],[1,'Next week']].map(([n,l])=>`<button class="${planWeek===n?'on':''}" data-action="planWeek" data-n="${n}">${l}</button>`).join('')}</div><span class="small muted">${filled}/21 planned</span></div>
+    <p class="small muted">Week of ${fmtDate(ws)}. Pick meals from your favourites and the ideas list. Fewer decisions means fewer 3pm raids.</p>
+    <div class="row wrap"><button class="btn small primary" data-action="planAuto">Fill empty slots</button><button class="btn small ghost" data-action="planClear">Clear week</button></div>
+  </section>
+  ${days.map(d=>{const dp=P7[d]||{};const kc=['breakfast','lunch','dinner'].reduce((a,m)=>a+(dp[m]?dp[m].kcal:0),0),pr=['breakfast','lunch','dinner'].reduce((a,m)=>a+(dp[m]?dp[m].protein:0),0);
+    return `<section class="card" style="gap:8px">
+    <div class="meal-h"><h3>${DOW[parseDk(d).getDay()]} <span class="small muted" style="font-family:var(--body);letter-spacing:0;text-transform:none">${fmtDate(d)}</span></h3>${kc?`<span class="small muted">~${n0(kc)} kcal · ${n0(pr)}g</span>`:''}</div>
+    ${['breakfast','lunch','dinner'].map(m=>{const lib=mealLibrary(m);const cur=dp[m];return `<div class="field"><label for="pl_${d}_${m}">${m[0].toUpperCase()+m.slice(1)}</label><select class="input" id="pl_${d}_${m}" data-change="planMeal" data-date="${d}" data-meal="${m}" style="min-height:42px;padding:9px 10px;font-size:15px"><option value="">Not planned</option>${lib.map(o=>`<option value="${esc(o.key)}" ${cur&&cur.name===o.name?'selected':''}>${esc(o.name)} (~${o.kcal} kcal)</option>`).join('')}${cur&&!lib.some(o=>o.name===cur.name)?`<option selected value="">${esc(cur.name)}</option>`:''}</select></div>`}).join('')}
+  </section>`}).join('')}
+  <p class="tiny faint" style="padding:0 4px">Calories and protein are estimates. Lunch and dinner leave room for a planned snack or treat within your target.</p>`;
+}
+function shopList(ws){
+  const P7=S.plans[ws]||{};const counts={};const noIng=new Set();
+  Object.values(P7).forEach(dp=>['breakfast','lunch','dinner'].forEach(m=>{const x=dp&&dp[m];if(!x)return;if(!x.ing||!x.ing.length){noIng.add(x.name);return}x.ing.forEach(i=>{const k=i.trim();if(k)counts[k]=(counts[k]||0)+1})}));
+  return {items:Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0])),noIng:[...noIng],extra:(S.shopExtra[ws]||[])};
+}
+function viewShop(){
+  const ws=planWs(), L=shopList(ws), chk=S.shopChecked[ws]||{};
+  const all=[...L.items.map(([n,c])=>({n,c})),...L.extra.map(n=>({n,extra:true}))];
+  const done=all.filter(x=>chk[x.n]).length;
+  return `
+  <header class="top"><div><div class="eyebrow">From your meal plan</div><div class="brand" style="font-size:30px">NUTRITION</div></div></header>
+  ${foodModeSeg()}
+  <section class="card">
+    <div class="row between"><div class="seg" style="width:190px">${[[0,'This week'],[1,'Next week']].map(([n,l])=>`<button class="${planWeek===n?'on':''}" data-action="planWeek" data-n="${n}">${l}</button>`).join('')}</div><span class="small muted">${done}/${all.length} got</span></div>
+    ${all.length?`<div class="checks">${all.map((x,i)=>`<label class="check"><input type="checkbox" id="sh_${i}" data-change="shopTick" data-name="${esc(x.n)}" ${chk[x.n]?'checked':''}><span class="box">${TICK}</span><span class="lbl">${esc(x.n)}</span>${x.c?`<span class="auto">${x.c} meal${x.c===1?'':'s'}</span>`:`<button class="btn small ghost" data-action="shopDel" data-name="${esc(x.n)}" aria-label="Remove ${esc(x.n)}" style="min-height:30px;padding:4px 8px">${ICON.close.replace('<svg','<svg width="12" height="12"')}</button>`}</label>`).join('')}</div>`:`<p class="small muted">Nothing yet. Plan some meals for this week and the ingredients appear here.</p>`}
+    <form data-form="shopAdd" class="row" autocomplete="off"><input class="input" id="shop_new" name="item" maxlength="60" placeholder="Add an item, e.g. Bananas" data-nofocus><button class="btn" type="submit">Add</button></form>
+    ${L.noIng.length?`<p class="tiny faint">No ingredients saved for: ${L.noIng.map(esc).join(', ')}. Add them by editing the favourite.</p>`:''}
+    <div class="row"><button class="btn primary" style="flex:1" data-action="shopCopy">Copy list</button>${done?`<button class="btn ghost" data-action="shopReset">Untick all</button>`:''}</div>
+    <p class="tiny faint">Quantities depend on how many you're feeding. The counts show how many planned meals use each item.</p>
+  </section>`;
+}
+function planTodayCard(k,D){
+  if(k!==todayKey())return '';
+  const pt=plannedToday(k);
+  const todo=['breakfast','lunch','dinner'].filter(m=>pt[m]&&!D.food.some(f=>f.meal===m&&f.name===pt[m].name));
+  if(!todo.length)return '';
+  return `<section class="card" style="gap:6px"><div class="row between"><div class="eyebrow">From your meal plan</div><button class="link" data-action="foodMode" data-m="plan">Edit plan</button></div>
+    ${todo.map(m=>`<div class="item"><div class="grow"><div class="t">${esc(pt[m].name)}</div><div class="s">${m[0].toUpperCase()+m.slice(1)} · ~${pt[m].kcal} kcal · ~${pt[m].protein}g</div></div><button class="btn small primary" data-action="logPlanned" data-meal="${m}">Log</button></div>`).join('')}
+  </section>`;
+}
+/* ---------- Waist & progress photos ---------- */
+const IDB_NAME='dadmode-photos';
+function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=()=>{r.result.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function photoAll(){try{const db=await idb();return await new Promise((res,rej)=>{const q=db.transaction('photos').objectStore('photos').getAll();q.onsuccess=()=>res(q.result.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.ts-b.ts));q.onerror=()=>rej(q.error)})}catch(e){return null}}
+async function photoPut(rec){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('photos','readwrite');t.objectStore('photos').put(rec);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+async function photoDel(id){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('photos','readwrite');t.objectStore('photos').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function shrinkImage(file,max=720){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{const sc=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',0.82))};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('img'))};img.src=url})}
+function waistSorted(){return [...S.waist].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)}
+function bodyCard(){
+  const w=waistSorted(), first=w[0], last=w[w.length-1], k=todayKey();
+  const ch=first&&last&&w.length>1?last.cm-first.cm:null;
+  let spark='';
+  if(w.length>1){const W=300,H=60,vals=w.map(x=>x.cm),mn=Math.min(...vals)-1,mx=Math.max(...vals)+1;
+    const pts=w.map((x,i)=>`${(8+i/(w.length-1)*(W-16)).toFixed(1)},${(6+(mx-x.cm)/(mx-mn)*(H-12)).toFixed(1)}`);
+    spark=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Waist trend"><polyline points="${pts.join(' ')}" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${pts.map((p,i)=>`<circle cx="${p.split(',')[0]}" cy="${p.split(',')[1]}" r="${i===pts.length-1?4:2.5}" fill="${i===pts.length-1?'var(--green-hi)':'var(--muted)'}"/>`).join('')}</svg>`}
+  return `<section class="card">
+    <div class="sec-title">Waist</div>
+    <div class="statrow"><div class="stat"><span class="eyebrow">Latest</span><span class="num">${last?kg1(last.cm):'–'}</span></div><div class="stat"><span class="eyebrow">Start</span><span class="num">${first?kg1(first.cm):'–'}</span></div><div class="stat"><span class="eyebrow">Change</span><span class="num" style="color:${ch!==null&&ch<0?'var(--green-hi)':'var(--fg)'}">${ch===null?'–':(ch>0?'+':'')+kg1(ch)}</span></div></div>
+    ${spark}
+    <form data-form="waist" class="row" style="align-items:flex-end" autocomplete="off">
+      <div class="field" style="flex:1.2"><label for="wa_date">Date</label><input class="input" type="date" id="wa_date" name="date" value="${k}" max="${k}"></div>
+      <div class="field" style="flex:1"><label for="wa_cm">Waist (cm)</label><input class="input" id="wa_cm" name="cm" inputmode="decimal" placeholder="${last?kg1(last.cm):'e.g. 104'}" required></div>
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <p class="tiny faint">Measure once a week, same morning as a weigh-in. Tape level with your belly button, relaxed, breathe out. Waist often drops when the scale stalls.</p>
+    ${w.length?`<details class="ex"><summary><span class="small muted">All measurements</span><span class="r">${w.length}</span></summary><div>${[...w].reverse().map(x=>`<div class="item"><div class="grow"><div class="t">${kg1(x.cm)} cm</div><div class="s">${fmtDay(x.date)}</div></div><button class="btn small ghost" data-action="delWaist" data-id="${x.id}" aria-label="Delete measurement">${ICON.close.replace('<svg','<svg width="14" height="14"')}</button></div>`).join('')}</div></details>`:''}
+  </section>
+  <section class="card">
+    <div class="row between"><div class="sec-title">Progress photos</div><label class="btn small primary" for="photoIn" style="cursor:pointer;white-space:nowrap">Add photo</label></div>
+    <input type="file" id="photoIn" accept="image/*" data-change="photoAdd" class="vh">
+    <div id="photoArea"><p class="small muted">Loading photos…</p></div>
+    <p class="tiny faint">Every two weeks, same spot, same light, same clothes. Photos stay on this phone only and aren't included in backups or cloud sync.</p>
+  </section>`;
+}
+async function fillPhotos(){
+  const area=$('#photoArea');if(!area)return;
+  const list=await photoAll();
+  if(!$('#photoArea'))return;
+  if(list===null){area.innerHTML='<p class="small muted">Photo storage isn\'t available in this browser. It works in the installed app.</p>';return}
+  if(!list.length){area.innerHTML='<p class="small muted">No photos yet. Your first one is the "before" you\'ll be glad you took.</p>';return}
+  const first=list[0], last=list[list.length-1];
+  const fig=(p,l)=>`<figure style="margin:0;display:flex;flex-direction:column;gap:6px;min-width:0"><img src="${p.data}" alt="Progress photo ${fmtDate(p.date)}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;background:var(--surface-2)"><figcaption class="tiny muted">${l} · ${fmtDate(p.date)}</figcaption></figure>`;
+  area.innerHTML=`${list.length>1?`<div class="grid2">${fig(first,'Start')}${fig(last,'Latest')}</div>`:`<div class="grid2">${fig(first,'Start')}<div class="callout" style="display:grid;place-items:center;text-align:center">Add another in two weeks to compare</div></div>`}
+    ${list.length>2?`<div class="eyebrow" style="margin-top:6px">All photos</div>`:''}
+    ${list.length>2?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px">${list.map(p=>`<button data-action="photoView" data-id="${p.id}" style="appearance:none;border:0;padding:0;background:none;cursor:pointer;min-width:0"><img src="${p.data}" alt="Photo ${fmtDate(p.date)}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px"></button>`).join('')}</div>`:`<div class="row wrap" style="margin-top:6px">${list.map(p=>`<button class="link" data-action="photoView" data-id="${p.id}">View or delete ${fmtDate(p.date)}</button>`).join('')}</div>`}`;
+}
+
+/* ---------- Barcode scanning ---------- */
+const ZXING_SRC='https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+let zxReader=null, zxLoading=null;
+function loadZXing(){if(window.ZXing)return Promise.resolve(window.ZXing);if(zxLoading)return zxLoading;
+  zxLoading=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=ZXING_SRC;sc.async=true;sc.onload=()=>window.ZXing?res(window.ZXing):rej(new Error('zx'));sc.onerror=()=>{zxLoading=null;rej(new Error('zx'))};document.head.appendChild(sc)});return zxLoading}
+function stopScan(){try{zxReader&&zxReader.reset()}catch(e){}zxReader=null}
+function scanSheet(){
+  const recent=S.scans.slice(-6).reverse();
+  openSheet(`<div class="sec-title">Scan barcode</div>
+    <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3"><video id="scanVideo" playsinline muted style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;left:12%;right:12%;top:42%;height:16%;border:2px solid var(--green-hi);border-radius:10px;pointer-events:none"></div></div>
+    <p class="small muted" id="scanStatus">Starting camera…</p>
+    <div class="grid2"><label class="btn" for="scanPhoto" style="cursor:pointer">Use a photo</label><button class="btn ghost" data-action="scanRetry">Restart camera</button></div>
+    <input type="file" id="scanPhoto" accept="image/*" capture="environment" data-change="scanPhoto" class="vh">
+    <form data-form="barcode" class="row" style="align-items:flex-end" autocomplete="off"><div class="field" style="flex:1"><label for="bc_code">Or type the number</label><input class="input" id="bc_code" name="code" inputmode="numeric" placeholder="e.g. 5000159407236" data-nofocus></div><button class="btn primary" type="submit">Look up</button></form>
+    ${recent.length?`<div class="eyebrow">Recent scans</div><div class="stack" style="gap:6px">${recent.map(x=>`<button class="pick" data-action="scanRecent" data-code="${esc(x.code)}"><span class="t">${esc(x.name)}</span><span class="s">${x.kcal100!=null?Math.round(x.kcal100)+' kcal/100g':''}</span></button>`).join('')}</div>`:''}
+    <p class="tiny faint">Product data comes from Open Food Facts, a free public database. Check it against the packet.</p>`);
+  startCamera();
+}
+async function startCamera(){
+  const st=()=>$('#scanStatus');
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nocam');
+    const ZX=await loadZXing();
+    if(!$('#scanVideo'))return;
+    stopScan();
+    zxReader=new ZX.BrowserMultiFormatReader();
+    await zxReader.decodeFromConstraints({video:{facingMode:'environment'}},'scanVideo',(res)=>{if(res&&zxReader){const code=res.getText();stopScan();if(st())st().textContent=`Found ${code}. Looking it up…`;lookupBarcode(code)}});
+    if(st())st().textContent='Point the camera at the barcode.';
+  }catch(e){if(st())st().textContent=String(e&&e.message)==='zx'?'Couldn\'t load the scanner. Check your connection, or type the number.':'Camera isn\'t available here. Use a photo of the barcode, or type the number.'}
+}
+async function scanFromFile(file){
+  const st=$('#scanStatus');if(st)st.textContent='Reading the barcode…';
+  try{const ZX=await loadZXing();stopScan();const r=new ZX.BrowserMultiFormatReader();const url=URL.createObjectURL(file);
+    try{const res=await r.decodeFromImageUrl(url);lookupBarcode(res.getText())}finally{URL.revokeObjectURL(url)}}
+  catch(e){if($('#scanStatus'))$('#scanStatus').textContent='Couldn\'t read a barcode in that photo. Get closer, fill the frame with the barcode, and use good light.'}
+}
+async function lookupBarcode(code){
+  code=String(code||'').replace(/\D/g,'');
+  if(code.length<6){toast('That barcode number looks too short');return}
+  const cached=S.scans.find(x=>x.code===code);
+  const st=$('#scanStatus');if(st)st.textContent=`Looking up ${code}…`;
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,brands,nutriments,serving_size,serving_quantity`);
+    const j=await r.json();
+    if(j.status!==1||!j.product){if(cached){productSheet(cached);return}if($('#scanStatus'))$('#scanStatus').textContent=`No product found for ${code}. Add it manually with the packet values.`;return}
+    const pr=j.product, n=pr.nutriments||{};
+    let kcal=n['energy-kcal_100g'];if(kcal==null&&n.energy_100g!=null)kcal=n.energy_100g/4.184;
+    const item={code,name:[pr.product_name,pr.brands&&pr.brands.split(',')[0]].filter(Boolean).join(' · ')||`Product ${code}`,kcal100:kcal!=null?+kcal:null,p100:n.proteins_100g!=null?+n.proteins_100g:null,servingG:+pr.serving_quantity||null,servingTxt:pr.serving_size||''};
+    S.scans=S.scans.filter(x=>x.code!==code);S.scans.push(item);if(S.scans.length>30)S.scans=S.scans.slice(-30);save();
+    productSheet(item);
+  }catch(e){
+    if(cached){productSheet(cached);return}
+    if($('#scanStatus'))$('#scanStatus').textContent='Couldn\'t reach Open Food Facts. Lookup needs an internet connection and works in the installed app (not inside Claude).';
+  }
+}
+function productSheet(x){
+  stopScan();
+  const g=x.servingG||100;
+  const missing=x.kcal100==null;
+  openSheet(`<form data-form="product" class="stack" autocomplete="off">
+    <div><div class="eyebrow">Scanned · ${esc(x.code)}</div><div class="sec-title" style="margin-top:4px">${esc(x.name)}</div></div>
+    <input type="hidden" name="code" value="${esc(x.code)}">
+    ${missing?`<p class="small muted">This product has no calorie data in Open Food Facts. Enter the packet values per 100g.</p>`:`<p class="small muted">Per 100g: <b style="color:var(--fg)">${Math.round(x.kcal100)} kcal</b>${x.p100!=null?`, <b style="color:var(--fg)">${kg1(x.p100)}g protein</b>`:''}${x.servingTxt?` · serving ${esc(x.servingTxt)}`:''}</p>`}
+    <div class="grid2">
+      <div class="field"><label for="pd_kcal">kcal per 100g</label><input class="input" id="pd_kcal" name="kcal100" inputmode="decimal" value="${x.kcal100!=null?Math.round(x.kcal100):''}" data-change="productCalc" data-nofocus></div>
+      <div class="field"><label for="pd_p">Protein per 100g</label><input class="input" id="pd_p" name="p100" inputmode="decimal" value="${x.p100!=null?kg1(x.p100):''}" data-change="productCalc"></div>
+      <div class="field"><label for="pd_g">Amount (g)</label><input class="input" id="pd_g" name="grams" inputmode="decimal" value="${g}" data-change="productCalc"></div>
+      <div class="field"><label for="pd_meal">Meal</label><select class="input" id="pd_meal" name="meal">${MEALS.map(([m,l])=>`<option value="${m}" ${m===defaultMeal()?'selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="callout" id="pdOut"></div>
+    <button class="btn primary block" type="submit">Add to diary</button>
+    <button class="link" type="button" data-action="scan">Scan another</button>
+  </form>`);
+  productCalc();
+}
+function defaultMeal(){const h=new Date().getHours();return h<11?'breakfast':h<14?'lunch':h<17?'snacks':'dinner'}
+function productCalc(){const o=$('#pdOut');if(!o)return;const k=num($('#pd_kcal').value),p=num($('#pd_p').value)||0,g=num($('#pd_g').value)||0;
+  o.innerHTML=k==null?'Enter calories per 100g to work out this portion.':`That's about <b style="color:var(--fg)">${n0(k*g/100)} kcal</b> and <b style="color:var(--fg)">${kg1(p*g/100)}g protein</b> for ${n0(g)}g.`}
+document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.change==='productCalc')productCalc()});
+
+/* ---------- Sleep vs snacking ---------- */
+function sleepSnackStats(){
+  const t=todayKey(), short=[], good=[];
+  for(let i=1;i<=42;i++){const k=addDays(t,-i);if(k<S.settings.startDate)break;const D=getDay(k);const sl=sleepOf(D);if(sl==null)continue;
+    const n=S.snacks.filter(x=>x.date===k&&x.reason!=='planned').length;(sl<6.5?short:good).push(n)}
+  const nights=short.length+good.length;
+  if(short.length<3||good.length<3)return {ready:false,nights,short:short.length,good:good.length};
+  const a=avg(short),b=avg(good);
+  return {ready:true,nights,shortAvg:a,goodAvg:b,ratio:b>0?a/b:(a>0?Infinity:1)};
+}
+function sleepSnackCard(){
+  const r=sleepSnackStats();
+  if(!r.ready){const need=Math.max(0,3-r.short)+Math.max(0,3-r.good);
+    return `<section class="card"><div class="row between"><div class="sec-title">Sleep vs cravings</div><span class="chip">${r.nights} nights</span></div>
+    <p class="small muted">Once there are 3 short nights (under 6½ hours) and 3 good ones, with cravings logged, this shows whether tiredness drives your snacking. ${need?`About ${need} more night${need===1?'':'s'} needed.`:''} Sleep comes from your Garmin import or the morning check-in.</p></section>`}
+  const big=r.ratio>=1.3&&isFinite(r.ratio);
+  const msg=!isFinite(r.ratio)?'You only log unplanned cravings after short nights. Tiredness is clearly a trigger.':
+    big?`After short nights you have about ${r.ratio.toFixed(1)}x more cravings (${r.shortAvg.toFixed(1)} vs ${r.goodAvg.toFixed(1)} a day). On tired days, plan the 3pm snack in advance.`:
+    r.ratio<=0.8?`Interesting: you crave less after short nights (${r.shortAvg.toFixed(1)} vs ${r.goodAvg.toFixed(1)} a day). Boredom may matter more than tiredness for you.`:
+    `Sleep doesn't seem to change your cravings much (${r.shortAvg.toFixed(1)} vs ${r.goodAvg.toFixed(1)} a day). Look at the "why" bars instead.`;
+  return `<section class="card"><div class="row between"><div class="sec-title">Sleep vs cravings</div><span class="small muted">Last 6 weeks</span></div>
+    <div class="hbars"><div class="hbar"><span>Short nights</span>${bar(r.shortAvg/Math.max(r.shortAvg,r.goodAvg,0.1),'amber')}<span class="c">${r.shortAvg.toFixed(1)}</span></div><div class="hbar"><span>Good nights</span>${bar(r.goodAvg/Math.max(r.shortAvg,r.goodAvg,0.1))}<span class="c">${r.goodAvg.toFixed(1)}</span></div></div>
+    <p class="tiny faint">Average unplanned cravings per day.</p>
+    <div class="rec">${esc(msg)}</div></section>`;
+}
+/* ---------- Cloud sync (Supabase) ---------- */
+const SETUP_SQL=`-- DAD MODE cloud sync. Paste into Supabase > SQL Editor > New query > Run.
+create table if not exists dadmode_health (
+  sync_id text not null,
+  day date not null,
+  steps int, sleep numeric, active int, rhr int,
+  updated_at timestamptz default now(),
+  primary key (sync_id, day)
+);
+create table if not exists dadmode_backup (
+  sync_id text primary key,
+  data jsonb not null,
+  updated_at timestamptz default now()
+);
+alter table dadmode_health enable row level security;
+alter table dadmode_backup enable row level security;
+-- No policies on purpose: the tables are only reachable through the functions below,
+-- and every function needs your private sync code.
+
+create or replace function dadmode_push_health(p_sync text, p_day date, p_steps numeric default null, p_sleep numeric default null, p_active numeric default null, p_rhr numeric default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if length(p_sync) < 20 then raise exception 'sync code too short'; end if;
+  insert into dadmode_health (sync_id, day, steps, sleep, active, rhr, updated_at)
+  values (p_sync, p_day, round(p_steps), p_sleep, round(p_active), round(p_rhr), now())
+  on conflict (sync_id, day) do update set
+    steps = coalesce(excluded.steps, dadmode_health.steps),
+    sleep = coalesce(excluded.sleep, dadmode_health.sleep),
+    active = coalesce(excluded.active, dadmode_health.active),
+    rhr = coalesce(excluded.rhr, dadmode_health.rhr),
+    updated_at = now();
+end $$;
+
+create or replace function dadmode_pull_health(p_sync text, p_since date)
+returns setof dadmode_health language sql security definer set search_path = public as $$
+  select * from dadmode_health where sync_id = p_sync and day >= p_since order by day
+$$;
+
+create or replace function dadmode_save_backup(p_sync text, p_data jsonb)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if length(p_sync) < 20 then raise exception 'sync code too short'; end if;
+  insert into dadmode_backup (sync_id, data, updated_at) values (p_sync, p_data, now())
+  on conflict (sync_id) do update set data = excluded.data, updated_at = now();
+end $$;
+
+create or replace function dadmode_load_backup(p_sync text)
+returns jsonb language sql security definer set search_path = public as $$
+  select data from dadmode_backup where sync_id = p_sync
+$$;
+
+grant execute on function dadmode_push_health(text, date, numeric, numeric, numeric, numeric) to anon;
+grant execute on function dadmode_pull_health(text, date) to anon;
+grant execute on function dadmode_save_backup(text, jsonb) to anon;
+grant execute on function dadmode_load_backup(text) to anon;`;
+const cloudOn=()=>!!(S.cloud&&S.cloud.url&&S.cloud.key&&S.cloud.code);
+function newSyncCode(){const a=new Uint8Array(18);(window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256|0);return 'dm_'+Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
+async function rpc(fn,body){
+  const base=S.cloud.url.replace(/\/+$/,'');
+  const r=await fetch(`${base}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':S.cloud.key,'Authorization':`Bearer ${S.cloud.key}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(e){}throw new Error(`${r.status} ${m}`.trim())}
+  const t=await r.text();return t?JSON.parse(t):null;
+}
+async function pullHealth(silent){
+  if(!cloudOn())return 0;
+  try{
+    const rows=await rpc('dadmode_pull_health',{p_sync:S.cloud.code,p_since:addDays(todayKey(),-14)});
+    let n=0;(rows||[]).forEach(r=>{const h={date:String(r.day).slice(0,10)};
+      if(r.steps!=null)h.steps=+r.steps;if(r.sleep!=null){let v=+r.sleep;if(v>1440)v=v/3600;else if(v>24)v=v/60;if(v>0&&v<=16)h.sleep=Math.round(v*100)/100}
+      if(r.active!=null)h.active=+r.active;if(r.rhr!=null&&r.rhr>25&&r.rhr<150)h.rhr=+r.rhr;
+      if(Object.keys(h).length>1){applyHealth(h,true);n++}});
+    S.cloud.lastPull=Date.now();S.cloud.error='';saveLocal();
+    if(n&&!silent)toast(`Garmin data synced for ${n} day${n===1?'':'s'}`);
+    return n;
+  }catch(e){S.cloud.error=String(e.message||e);saveLocal();if(!silent)toast('Cloud sync failed: '+S.cloud.error);return -1}
+}
+let pushT=null;
+function schedulePush(){if(!cloudOn())return;clearTimeout(pushT);pushT=setTimeout(pushBackup,6000)}
+async function pushBackup(){if(!cloudOn())return false;try{await rpc('dadmode_save_backup',{p_sync:S.cloud.code,p_data:S});S.cloud.lastPush=Date.now();S.cloud.error='';saveLocal();return true}catch(e){S.cloud.error=String(e.message||e);saveLocal();return false}}
+function since(ts){if(!ts)return 'never';const m=Math.round((Date.now()-ts)/60000);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)}h ago`:`${Math.round(m/1440)}d ago`}
+function cloudSheet(){
+  const c=S.cloud||{};
+  const code=c.code||newSyncCode();
+  const copyRow=(label,val,id)=>`<div class="field"><label for="${id}">${label}</label><div class="row"><input class="input" id="${id}" readonly value="${esc(val)}" data-nofocus style="font-size:12px"><button class="btn small" type="button" data-action="copyField" data-for="${id}">Copy</button></div></div>`;
+  openSheet(`<div class="sec-title">Cloud sync</div>
+    <p class="small muted">Free with Supabase. Your Garmin data arrives on its own through a timed Shortcut, and your diary is backed up to the cloud.</p>
+    ${cloudOn()?`<div class="rec">Connected. Garmin pulled ${since(c.lastPull)} · backup saved ${since(c.lastPush)}${c.error?`<br><span style="color:var(--clay)">Last error: ${esc(c.error)}</span>`:''}</div>
+      <div class="grid2"><button class="btn primary" data-action="cloudSyncNow">Sync now</button><button class="btn" data-action="cloudRestore">Restore from cloud</button></div>`:''}
+    <div class="eyebrow">1 · Create the database (once)</div>
+    <ol class="safety"><li>Sign up free at supabase.com and create a project (any name, region London).</li><li>Open SQL Editor → New query, paste the setup code below, then Run.</li><li>Go to Project Settings → API. Copy the Project URL and the anon public key into the boxes below.</li></ol>
+    <textarea class="input" id="sqlTxt" readonly data-nofocus style="min-height:90px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace">${esc(SETUP_SQL)}</textarea>
+    <button class="btn small" type="button" data-action="copyField" data-for="sqlTxt">Copy setup code</button>
+    <form data-form="cloud" class="stack" autocomplete="off">
+      <div class="field"><label for="cl_url">Project URL</label><input class="input" id="cl_url" name="url" data-nofocus placeholder="https://abcd1234.supabase.co" value="${esc(c.url||'')}"></div>
+      <div class="field"><label for="cl_key">Anon public key</label><input class="input" id="cl_key" name="key" placeholder="eyJ..." value="${esc(c.key||'')}" style="font-size:12px"></div>
+      <input type="hidden" name="code" value="${esc(code)}">
+      <button class="btn primary block" type="submit">${cloudOn()?'Save and test':'Connect and test'}</button>
+    </form>
+    ${copyRow('Your private sync code (treat it like a password)',code,'cl_code')}
+    <div class="eyebrow">2 · Automatic Garmin Shortcut</div>
+    <p class="small muted">Duplicate your DAD MODE Shortcut and call it DAD MODE Sync. Keep the Steps, Sleep, Active and RHR steps, then replace the Text and Copy steps with:</p>
+    <ol class="safety">
+      <li><b style="color:var(--fg)">Format Date</b>: Current Date, Custom format <code>yyyy-MM-dd</code>. Rename it Day.</li>
+      <li><b style="color:var(--fg)">Get Contents of URL</b>: the address below, Method POST.</li>
+      <li>Headers: <code>apikey</code> = your anon key, <code>Authorization</code> = <code>Bearer</code> + space + your anon key.</li>
+      <li>Request Body JSON: p_sync (Text) = sync code · p_day (Text) = Day · p_steps, p_sleep, p_active, p_rhr (Number) = your four results.</li>
+    </ol>
+    ${copyRow('Shortcut address',`${(c.url||'https://YOUR-PROJECT.supabase.co').replace(/\/+$/,'')}/rest/v1/rpc/dadmode_push_health`,'cl_push')}
+    <div class="eyebrow">3 · Run it on a timer</div>
+    <ol class="safety"><li>Shortcuts → Automation → + → Time of Day → 12:00, Daily → Run Immediately → DAD MODE Sync.</li><li>Repeat for 17:30 and 21:30. Garmin data then shows up whenever you open the app.</li></ol>
+    ${cloudOn()?`<button class="btn danger block" data-action="cloudOff">Disconnect cloud sync</button>`:''}
+    <p class="tiny faint">Inside Claude the app can't reach Supabase. Sync works in the installed app on your iPhone.</p>`);
+}
+function nudgesSheet(){
+  const N=[
+    ['3pm snack nudge','14:45','Weekdays','3pm snack attack incoming. Glass of water and a 10-minute walk first?'],
+    ['Morning check-in','06:15','Daily','Morning. Check in and get today\'s rundown.'],
+    ['Weigh-in','06:30','Mon, Wed, Fri','Weigh-in morning. Toilet first, then the scales, before breakfast.'],
+    ['Wind down','21:00','Daily','Wind down. Screens off soon. Kit out if tomorrow\'s a strength day.']
+  ];
+  openSheet(`<div class="sec-title">Phone nudges</div>
+    <p class="small muted">A web app can't send notifications on its own schedule, but your iPhone can, through free Shortcut automations. Set up the 3pm one first. It matters most.</p>
+    <ol class="safety">
+      <li>Open Shortcuts → Automation → + → <b style="color:var(--fg)">Time of Day</b>.</li>
+      <li>Set the time, choose <b style="color:var(--fg)">Weekly</b> and the days, then <b style="color:var(--fg)">Run Immediately</b>.</li>
+      <li>Create New Shortcut → add <b style="color:var(--fg)">Show Notification</b> → paste the message.</li>
+    </ol>
+    ${N.map(([t,time,days,msg],i)=>`<div class="card" style="padding:14px;gap:8px;background:var(--surface-2)"><div class="row between"><b>${t}</b><span class="small muted">${time} · ${days}</span></div><p class="small" id="nudge_${i}">${esc(msg)}</p><button class="btn small" data-action="copyText" data-for="nudge_${i}" style="align-self:flex-start">Copy message</button></div>`).join('')}
+    <p class="tiny faint">Tapping a notification opens Shortcuts rather than DAD MODE. Open the app from your home screen when it buzzes.</p>`);
+}
+
+/* ---------- Check-in & rundown ---------- */
+const FEEL=['','Rough','Flat','OK','Good','Great'];
+const SLEEP_LBL={4.5:'under 5 hours',5.5:'5–6 hours',6.5:'6–7 hours',7.5:'7–8 hours',8.5:'8+ hours'};
+const sleepTxt=D=>D.sleepHrs!=null?fmtHrs(D.sleepHrs):(D.checkin&&SLEEP_LBL[D.checkin.sleepHrs])||'';
+const sleepOf=D=>D.sleepHrs!=null?D.sleepHrs:(D.checkin&&D.checkin.sleepHrs!=null?D.checkin.sleepHrs:null);
+let rundownOpen=true;
+function coachSection(k,D,plan){
+  const simple=`<section class="card coach" aria-label="Your coach"><div class="avatar" aria-hidden="true">DM</div><div class="stack" style="gap:4px;flex:1"><span class="eyebrow">Your coach</span><p class="msg">${esc(coach())}</p>
+    ${S.settings.rundown&&!D.checkin&&!D.rundownSkip?`<div class="row wrap" style="margin-top:6px"><button class="btn small primary" data-action="checkin">Get today's rundown</button><button class="link" data-action="skipRundown">Not today</button></div>`:''}
+    ${S.settings.rundown&&D.rundownSkip&&!D.checkin?`<button class="link" data-action="checkin" style="align-self:flex-start">Get today's rundown</button>`:''}</div></section>`;
+  if(!S.settings.rundown||!D.checkin) return simple;
+  const items=rundown(k,D,plan);
+  return `<section class="card" aria-label="Today's rundown" style="gap:10px">
+    <div class="row between"><div class="row" style="gap:12px"><div class="coach"><div class="avatar" aria-hidden="true">DM</div></div><div><div class="eyebrow">Your coach</div><div class="sec-title" style="margin-top:3px;white-space:nowrap">Today's rundown</div></div></div><button class="link" data-action="toggleRundown" aria-expanded="${rundownOpen}">${rundownOpen?'Hide':'Show'}</button></div>
+    <p class="msg" style="font-size:15.5px">${esc(items.opener)}</p>
+    ${rundownOpen?`<div>${items.list.map(it=>`<div class="item" style="align-items:flex-start"><div class="grow"><div class="eyebrow" style="color:var(--green-hi)">${it.h}</div><div style="margin-top:3px;font-size:14.5px">${esc(it.t)}</div>${it.btn?`<button class="btn small" style="margin-top:8px" data-action="${it.btn[1]}">${it.btn[0]}</button>`:''}</div></div>`).join('')}</div>
+    <div class="row between"><span class="tiny faint">Check-in: ${FEEL[D.checkin.feeling]}${sleepOf(D)!=null?` · ${sleepTxt(D)} sleep`:''}${D.checkin.wakes?` · up ${D.checkin.wakes>=3?'3+':D.checkin.wakes}x`:''}</span><button class="link" data-action="checkin">Edit check-in</button></div>`:''}
+  </section>`;
+}
+function rundown(k,D,plan){
+  const s=S.settings, c=D.checkin, f=c.feeling, sl=sleepOf(D), wakes=c.wakes||0;
+  const wd=parseDk(k).getDay(), workday=wd>=1&&wd<=5, h=new Date().getHours();
+  const tired=(sl!=null&&sl<6)||wakes>=2||f<=2;
+  const wrecked=(sl!=null&&sl<5)||f===1;
+  const list=[];
+  // opener
+  let opener;
+  if(wrecked) opener=`Tough night${sl!=null?`, ${sleepTxt(D)} of sleep`:''}. Today is about damage limitation, not heroics. Small wins count double.`;
+  else if(tired) opener=`Running a bit low today${sl!=null?` on ${sleepTxt(D)} of sleep`:''}. That's new-dad life. Keep the basics and go easy on yourself.`;
+  else if(f>=4&&(sl==null||sl>=7)) opener=`${FEEL[f]} start${sl!=null?` and ${sleepTxt(D)} of sleep`:''}. This is a day to bank some progress.`;
+  else opener=`A steady day. Nothing fancy, just tick the basics off one at a time.`;
+  if(h>=12) opener+=` Here's the plan for the rest of the day.`;
+  // yesterday
+  const y=addDays(k,-1);
+  if(y>=s.startDate&&hasData(y)){const Y=getDay(y);const hc=habitCount(y);const wo=S.workouts.find(w=>w.date===y&&w.status==='done');
+    list.push({h:'Yesterday',t:`${hc}/8 habits${Y.steps?`, ${n0(Y.steps)} steps`:''}${wo?`, ${wo.label} done`:''}. ${hc>=6?'A good platform to build on.':hc>=4?'Solid enough. Today can be a notch better.':'Yesterday is done. Today starts fresh.'}`});}
+  // sleep note
+  if(sl!=null){
+    let t;
+    if(sl<5) t='Under 5 hours. Expect stronger cravings and lower willpower this afternoon. That\'s biology, not weakness. Caffeine before 1pm only, and aim for bed by 9:30.';
+    else if(sl<6.5) t=`${sleepTxt(D)} is short. Tired brains want sugar, so plan your 3pm treat now rather than raiding the cupboard later. Get daylight before 10am.`;
+    else if(sl<7.5) t=`${sleepTxt(D)} is decent for a dad of a newborn. Normal service today.`;
+    else t=`${sleepTxt(D)}. A proper night. Your body will recover well from training today.`;
+    if(wakes>=2) t+=` Up ${wakes>=3?'3 or more times':'twice'} with the baby too, so be kind to yourself.`;
+    list.push({h:'Sleep',t});
+  } else if(wakes>=2) list.push({h:'Sleep',t:'Broken night with the baby. Expect a bit less energy and stronger cravings, and plan around it.'});
+  // movement
+  if(D.mission) list.push({h:'Movement',t:`${plan.title} is already done. Anything else today is a bonus.`});
+  else if(plan.kind==='strength'){
+    if(wrecked) list.push({h:'Movement',t:`${WORKOUTS[plan.w].name} is on the plan, but after a night like that a 20–30 minute walk is the better choice. Consistency doesn't mean perfection.`,btn:['Swap to a walk','swapWalk']});
+    else if(tired) list.push({h:'Movement',t:`${WORKOUTS[plan.w].name} is on. Do 2 rounds and use the easier versions if you need to. Showing up is the win.`,btn:['Start workout','startToday']});
+    else list.push({h:'Movement',t:`${WORKOUTS[plan.w].name}, ${s.rounds} rounds, ideally before 9am. ${f>=4&&sl!=null&&sl>=7&&s.rounds<3?'Feeling good, so try a third round if it\'s flowing.':'Kettlebell out, kit on, done.'}`,btn:['Start workout','startToday']});
+  } else list.push({h:'Movement',t:`${plan.title}: ${plan.detail}`});
+  // steps
+  const left=Math.max(0,s.steps-D.steps);
+  if(left>0) list.push({h:'Steps',t:`${n0(left)} to go. ${workday?'Split it: 15 minutes before 9, a lap at lunch, then a pram walk after 5. That covers most of it.':'A family walk does most of the work today.'}`});
+  else list.push({h:'Steps',t:'Step target already hit. Brilliant.'});
+  // food
+  const kc=kcalOf(D), pr=protOf(D);
+  const sp=x=>Math.round(s.protein*x/5)*5;
+  const pt=plannedToday(k);const tonight=pt.dinner?` Tonight's plan: ${pt.dinner.name}.`:'';
+  list.push({h:'Food',t:`${n0(Math.max(0,s.kcal-kc))} kcal and ${n0(Math.max(0,s.protein-pr))}g protein left. Rough split: ${sp(.25)}g at breakfast, ${sp(.3)}g at lunch, ${sp(.3)}g at dinner, ${sp(.15)}g in a snack.${tired?' On a tired day, keep meals simple: pick from your favourites.':''}${tonight}`});
+  // 3pm
+  const ss=sleepSnackStats();const ssNote=ss.ready&&tired&&ss.ratio>=1.3?` Your data says you crave ${isFinite(ss.ratio)?ss.ratio.toFixed(1)+'x':'far'} more after short nights, so this matters today.`:'';
+  if(workday) list.push({h:'3pm',t:(tired?'Danger zone today. At 2:45, drink a glass of water and walk round the block. If you still want something, have a planned treat on a plate, like dark chocolate or a protein pudding.':'At 2:45, stand up, have some water and decide your snack on purpose. Use the craving button if the urge hits.')+ssNote});
+  else list.push({h:'Treats',t:'Weekends are when grazing creeps in. Have one planned treat and enjoy it properly.'});
+  // evening
+  list.push({h:'Evening',t:wrecked||tired?'Screens down by 9pm and lights out as early as the baby allows. Sleep is the best thing you can do for tomorrow.':'Wind down from 9pm. Lay your kit out if tomorrow is a strength day.'});
+  if(c.note) list.push({h:'Your note',t:`"${c.note}" Noted. It'll show up in your Sunday review.`});
+  return {opener,list};
+}
+function checkinSheet(){
+  const k=todayKey(), D=getDay(k), c=D.checkin||{};
+  const g=D.sleepHrs;
+  const sleepOpts=[['Under 5',4.5],['5–6',5.5],['6–7',6.5],['7–8',7.5],['8+',8.5]];
+  openSheet(`<form data-form="checkin" class="stack" autocomplete="off">
+    <div><div class="eyebrow">Morning check-in</div><div class="sec-title" style="margin-top:4px">How are you doing?</div></div>
+    <div class="field"><label>How do you feel?</label><div class="scale">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="feeling" id="ci_f${n}" value="${n}" ${(c.feeling||0)===n?'checked':''} required><span style="font-family:var(--body);font-size:12.5px">${FEEL[n]}</span></label>`).join('')}</div></div>
+    <div class="field"><label>Sleep</label>${g!=null?`<p class="small">Garmin says <b>${fmtHrs(g)}</b>.</p>`:`<div class="scale">${sleepOpts.map(([l,v],i)=>`<label><input type="radio" name="sleep" id="ci_s${i}" value="${v}" ${c.sleepHrs===v?'checked':''}><span style="font-family:var(--body);font-size:12.5px">${l}</span></label>`).join('')}</div><span class="tiny faint">Hours. Or import from your Garmin for the exact figure.</span>`}</div>
+    <div class="field"><label>Times up with the baby</label><div class="scale">${['0','1','2','3+'].map((l,i)=>`<label><input type="radio" name="wakes" id="ci_w${i}" value="${i}" ${(c.wakes||0)===i&&c.feeling?'checked':''}><span style="font-family:var(--body);font-size:13px">${l}</span></label>`).join('')}</div></div>
+    <div class="field"><label for="ci_note">Anything on your mind? (optional)</label><textarea class="input" id="ci_note" name="note" maxlength="240" data-nofocus placeholder="e.g. Big deadline today, sore lower back, feeling motivated" style="min-height:70px">${esc(c.note||'')}</textarea></div>
+    <button class="btn primary block" type="submit">Get my rundown</button>
+  </form>`);
+}
+
+/* ---------- Coach ---------- */
+function coach(){
+  const k=todayKey(), D=getDay(k), s=S.settings, now=new Date(), h=now.getHours(), wd=now.getDay(), plan=planFor(k,D);
+  if(!D.roughNight&&D.sleepHrs!=null&&D.sleepHrs<5.5&&plan.kind==='strength'&&!D.mission) return `Your Garmin says ${fmtHrs(D.sleepHrs)} of sleep. Tap "Rough night with the baby?" to swap today's workout for a walk. Consistency doesn't mean perfection.`;
+  if(D.roughNight) return 'A difficult night with the baby? Today\'s workout is now a walk. Consistency doesn\'t mean perfection.';
+  if(wd>=1&&wd<=5&&h>=14&&h<17) return 'It\'s the afternoon dip. Before reaching for the biscuit tin, ask yourself whether you\'re hungry or bored.';
+  let streak=getDay(k).steps>=s.steps?1:0;
+  for(let i=1;i<=30;i++){if(getDay(addDays(k,-i)).steps>=s.steps)streak++;else break}
+  if(streak>=3) return `You've hit your steps ${streak} days running. Brilliant work.`;
+  const lw=weekStats(addDays(weekStart(k),-7));
+  if(lw.tracked>=3&&lw.habitPct<0.4&&wd>=1&&wd<=3) return 'Last week was a tough one. Forget Monday motivation. Start again at your next meal.';
+  if(h<9&&plan.kind==='strength'&&!D.mission) return '20 minutes before work. Kettlebell out, kit on, done before the laptop opens.';
+  const tr=trend(); if(tr&&tr.change<=-0.2) return `Your weekly average is down ${kg1(-tr.change)}kg. Slow and steady is exactly right.`;
+  if(h>=20) return 'Bed soon if you can. Sleep is a training tool, especially with a newborn in the house.';
+  const i=((daysBetween(s.startDate,k)%ROTATION.length)+ROTATION.length)%ROTATION.length;
+  return ROTATION[i];
+}
+
+/* ---------- UI helpers ---------- */
+function ring(pct,size=58,stroke=6,color='var(--green)'){
+  const r=(size-stroke)/2,c=2*Math.PI*r,o=c*(1-clamp(pct));
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="var(--surface-2)" stroke-width="${stroke}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${o.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})"/></svg>`;
+}
+const bar=(pct,cls='')=>`<div class="bar ${cls}"><i style="width:${(clamp(pct)*100).toFixed(1)}%"></i></div>`;
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function openSheet(html){$('#sheetPanel').innerHTML='<div class="grab"></div>'+html;$('#sheet').hidden=false;const f=$('#sheetPanel input:not([type=hidden]):not([type=checkbox]),#sheetPanel textarea');if(f&&!f.readOnly&&f.dataset.nofocus===undefined)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(e){}},60)}
+function closeSheet(){if(typeof stopScan==='function')stopScan();$('#sheet').hidden=true;$('#sheetPanel').innerHTML=''}
+
+function copyStr(txt,sel){const fb=()=>{if(sel){sel.focus();sel.select();toast('Selected. Tap Copy in the menu.')}else toast('Copy not available here')};try{navigator.clipboard.writeText(txt).then(()=>toast('Copied'),fb)}catch(e){fb()}}
+/* ---------- Routing ---------- */
+const TABS=[['today','Today'],['snack','Snacks'],['food','Food'],['train','Train'],['progress','Progress']];
+let tab='today';
+function readHash(){const h=(location.hash||'').slice(1);return TABS.some(t=>t[0]===h)?h:'today'}
+function go(t){if(location.hash.slice(1)!==t){try{location.hash=t}catch(e){}}if(tab!==t){tab=t;render(true)}}
+function renderTabs(){$('#tabsIn').innerHTML=TABS.map(([id,l])=>`<button class="tab ${tab===id?'on':''}" data-action="tab" data-tab="${id}" aria-current="${tab===id?'page':'false'}">${ICON[id]}<span>${l}</span></button>`).join('')}
+function render(top){
+  const y=window.scrollY;
+  $('#view').innerHTML=(storageOK?'':`<div class="banner">Storage is blocked in this browser, so entries won't be kept after you close the app. Open it in Safari or from your home screen.</div>`)+VIEWS[tab]();
+  renderTabs();
+  if(top)window.scrollTo(0,0);else window.scrollTo(0,y);
+  if(tab==='progress')fillPhotos();
+}
+
+/* ---------- TODAY ---------- */
+function viewToday(){
+  const k=todayKey(), D=getDay(k), s=S.settings, plan=planFor(k,D), wk=weekInfo(k);
+  const cw=currentWeight(), lost=s.startWeight-cw, span=s.startWeight-s.stretch;
+  const pos=v=>clamp((s.startWeight-v)/span)*100;
+  const kc=kcalOf(D), pr=protOf(D);
+  const ws=weekStart(k), st=weekStats(ws);
+  const h=new Date().getHours(), wd=new Date().getDay();
+  const snackHot=wd>=1&&wd<=5&&h>=12&&h<18;
+  return `
+  <header class="top">
+    <div><div class="eyebrow">${fmtDay(k)}</div><div class="brand">DAD <b>MODE</b></div></div>
+    <div class="row"><span class="chip">Week ${wk.label}</span><button class="icon-btn" data-action="settings" aria-label="Settings and data">${ICON.gear}</button></div>
+  </header>
+  <p class="tagline">Stronger, healthier, better. One day at a time.</p>
+  ${reviewPrompt(k)}
+  <section class="card" aria-label="Weight">
+    <div class="hero-w">
+      <div><div class="eyebrow">Current weight</div><div class="num big">${kg1(cw)}<small>kg</small></div></div>
+      <div class="kv">
+        <div><span class="eyebrow">Start</span><span class="num">${kg1(s.startWeight)}</span></div>
+        <div><span class="eyebrow">Lost</span><span class="num" style="color:var(--green-hi)">${lost>0?kg1(lost):'0.0'}</span></div>
+        <div><span class="eyebrow">Target</span><span class="num">${kg1(s.target)}</span></div>
+      </div>
+    </div>
+    <div class="track" role="img" aria-label="${kg1(Math.max(0,lost))}kg lost of ${kg1(span)}kg">
+      <i style="width:${pos(cw).toFixed(1)}%"></i>
+      ${MILESTONES.slice(0,3).map(m=>`<span class="tick ${S.milestones[m]?'hit':''}" style="left:${pos(m)}%"></span>`).join('')}
+    </div>
+    <div class="track-labels"><span style="left:0">${kg1(s.startWeight)}</span>${MILESTONES.slice(0,3).map(m=>`<span style="left:${pos(m)}%">${m}</span>`).join('')}<span style="left:100%">${kg1(s.stretch)}</span></div>
+    <p class="small muted">${cw>s.target?`${kg1(cw-s.target)}kg to ${kg1(s.target)}kg`:`Past ${kg1(s.target)}kg`} · ${cw>s.stretch?`${kg1(cw-s.stretch)}kg to ${kg1(s.stretch)}kg`:`Past ${kg1(s.stretch)}kg`}</p>
+  </section>
+
+  <section class="card mission" aria-label="Today's mission">
+    <div class="row between"><span class="m-label">TODAY'S MISSION</span>${D.mission?`<span class="done-pill">${ICON.tick.replace('<svg','<svg width="14" height="14"')} Done</span>`:`<span class="tiny muted">${DOW[wd]}</span>`}</div>
+    <div class="m-title">${esc(plan.title)}</div>
+    <p class="muted">${esc(plan.detail)}</p>
+    <div class="row wrap">
+      ${plan.kind==='strength'&&!D.mission?`<button class="btn primary" data-action="startWorkout" data-w="${plan.w}">Start ${WORKOUTS[plan.w].name}</button>`:''}
+      <button class="btn ${plan.kind==='strength'&&!D.mission?'ghost':D.mission?'ghost':'primary'}" data-action="toggleMission">${D.mission?'Undo':'Mark done'}</button>
+      ${plan.kind==='strength'||plan.swapped?`<button class="chip ${D.roughNight?'on':''}" data-action="roughNight" aria-pressed="${D.roughNight}">Rough night with the baby?</button>`:''}
+    </div>
+  </section>
+
+  ${coachSection(k,D,plan)}
+
+  <div class="grid2">
+    <button class="tile" data-action="tab" data-tab="food" style="text-align:left;cursor:pointer;color:inherit">
+      <div class="tile-head"><span class="eyebrow">Calories</span>${ring(kc/s.kcal,40,5,kc>s.kcal*1.1?'var(--amber)':'var(--green)')}</div>
+      <div><div class="num v">${n0(kc)}</div><div class="of">of ${n0(s.kcal)} · ${kc<=s.kcal?n0(s.kcal-kc)+' left':n0(kc-s.kcal)+' over'}</div></div>
+    </button>
+    <button class="tile" data-action="tab" data-tab="food" style="text-align:left;cursor:pointer;color:inherit">
+      <div class="tile-head"><span class="eyebrow">Protein</span>${ring(pr/s.protein,40,5)}</div>
+      <div><div class="num v">${n0(pr)}<span class="of"> g</span></div><div class="of">of ${s.protein}g target</div></div>
+    </button>
+    <div class="tile">
+      <div class="tile-head"><span class="eyebrow">Steps</span><span class="tiny muted">${Math.round(D.steps/s.steps*100)}%</span></div>
+      <div><div class="num v">${n0(D.steps)}</div><div class="of">of ${n0(s.steps)}</div></div>
+      ${bar(D.steps/s.steps)}
+      <div class="mini-btns"><button class="btn" data-action="stepsAdd">+1,000</button><button class="btn" data-action="stepsSet">Set</button></div>
+    </div>
+    <div class="tile">
+      <div class="tile-head"><span class="eyebrow">Water</span><span class="tiny muted">${Math.round(D.waterMl/s.waterMl*100)}%</span></div>
+      <div><div class="num v">${(D.waterMl/1000).toFixed(2).replace(/0$/,'')}<span class="of"> L</span></div><div class="of">of ${(s.waterMl/1000).toFixed(1)} L</div></div>
+      ${bar(D.waterMl/s.waterMl)}
+      <div class="mini-btns"><button class="btn" data-action="water" data-ml="-250" aria-label="Remove 250ml">−</button><button class="btn" data-action="water" data-ml="250">+250</button><button class="btn" data-action="water" data-ml="500">+500</button></div>
+    </div>
+  </div>
+
+  ${healthCard(k,D)}
+
+  <section class="card" aria-label="${snackHot?'Snack attack':'Snack help'}" style="${snackHot?'border-color:rgba(217,182,108,.45)':''}">
+    <div class="row between"><div><div class="eyebrow">${snackHot?'Afternoon window':'Snack attack'}</div><div class="sec-title" style="margin-top:4px">Beat the 3pm snack attack</div></div></div>
+    <button class="btn ${snackHot?'primary':''} block" data-action="crave">I'm craving a snack</button>
+    <button class="link" data-action="nudges" style="align-self:flex-start">Get a 2:45 buzz on your phone</button>
+  </section>
+
+  <section class="card" aria-label="Daily habits">
+    <div class="row between"><div class="sec-title">Daily habits</div><span class="chip ${habitCount(k)>=6?'on':''}">${habitCount(k)}/8</span></div>
+    <div class="checks">${HABITS.map(([key,label])=>{const auto=AUTO_KEYS.includes(key);return `<label class="check"><input type="checkbox" id="h_${key}" data-change="habit" data-key="${key}" ${habitDone(k,key)?'checked':''}><span class="box">${TICK}</span><span class="lbl">${label}</span>${auto?'<span class="auto">auto</span>':''}</label>`}).join('')}</div>
+    <p class="tiny faint">Six out of eight is a good day. Ticks marked auto fill in from what you log, and you can override them.</p>
+  </section>
+
+  <section class="card" aria-label="This week">
+    <div class="row between"><div class="sec-title">This week</div><span class="small muted">${Math.round(st.habitPct*100)}% of habits</span></div>
+    <div class="week">${[0,1,2,3,4,5,6].map(i=>{const dkey=addDays(ws,i),fut=dkey>k,pct=fut?0:habitCount(dkey)/8;const wo=S.workouts.some(w=>w.date===dkey&&w.status==='done');return `<div class="wday ${dkey===k?'today':''}"><div class="wcol ${fut?'future':''}"><i style="height:${(pct*100).toFixed(0)}%"></i></div><span class="d">${DOW[parseDk(dkey).getDay()][0]}</span><span class="dot ${wo?'on':''}" title="${wo?'Workout logged':''}"></span></div>`}).join('')}</div>
+    <div class="statrow">
+      <div class="stat"><span class="eyebrow">Strength</span><span class="num">${st.strength}/${s.workoutsPerWeek}</span></div>
+      <div class="stat"><span class="eyebrow">Avg steps</span><span class="num">${st.stepsAvg?n0(st.stepsAvg):'–'}</span></div>
+      <div class="stat"><span class="eyebrow">Active min</span><span class="num">${n0(st.activeMin)}</span></div>
+    </div>
+    <p class="tiny faint">Bars show daily habits. Amber dots mark days with a workout or activity logged.</p>
+  </section>`;
+}
+
+const fmtHrs=h=>{const m=Math.round(h*60);return `${Math.floor(m/60)}h ${p2(m%60)}m`};
+function healthCard(k,D){
+  const has=D.healthAt;
+  const items=[];
+  if(D.sleepHrs!=null)items.push(['Sleep',fmtHrs(D.sleepHrs)]);
+  if(D.rhr!=null)items.push(['Resting HR',`${Math.round(D.rhr)}`]);
+  if(D.activeKcal!=null)items.push(['Active kcal',n0(D.activeKcal)]);
+  return `<section class="card" aria-label="Garmin data">
+    <div class="row between"><div><div class="eyebrow">From your Garmin</div><div class="small muted" style="margin-top:2px">${has?`Imported ${new Date(D.healthAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Steps, sleep and heart rate via Apple Health'}</div></div><button class="btn small primary" data-action="healthImport">Import</button></div>
+    ${items.length?`<div class="statrow">${items.map(([l,v])=>`<div class="stat"><span class="eyebrow">${l}</span><span class="num">${v}</span></div>`).join('')}</div>`:`<p class="small muted">Run the DAD MODE Shortcut, then tap Import. <button class="link" data-action="healthHelp">How to set it up</button></p>`}
+  </section>`;
+}
+function parseHealth(txt){
+  const t=String(txt||'');
+  if(!/DADMODE/i.test(t)) return null;
+  const out={};
+  const re=/(steps|sleep|active|rhr|date)\s*=\s*([0-9][0-9.,:\-]*)/gi;let m;
+  while((m=re.exec(t))){const key=m[1].toLowerCase();let v=m[2].replace(/,(?=\d{3}\b)/g,'');
+    if(key==='date'){if(/^\d{4}-\d{2}-\d{2}$/.test(v))out.date=v;continue}
+    v=parseFloat(v.replace(',','.'));if(!isFinite(v))continue;
+    if(key==='sleep'){ if(v>1440) v=v/3600; else if(v>24) v=v/60; if(v>0&&v<=16) out.sleep=Math.round(v*100)/100; }
+    else if(key==='steps'){ if(v>=0&&v<100000) out.steps=Math.round(v) }
+    else if(key==='active'){ if(v>=0&&v<6000) out.active=Math.round(v) }
+    else if(key==='rhr'){ if(v>25&&v<150) out.rhr=Math.round(v) }
+  }
+  return Object.keys(out).filter(k=>k!=='date').length?out:null;
+}
+function applyHealth(h,silent){
+  const k=h.date&&h.date<=todayKey()?h.date:todayKey();
+  const D=ensureDay(k);
+  if(h.steps!=null)D.steps=h.steps;
+  if(h.sleep!=null)D.sleepHrs=h.sleep;
+  if(h.active!=null)D.activeKcal=h.active;
+  if(h.rhr!=null)D.rhr=h.rhr;
+  D.healthAt=Date.now();
+  save();
+  const bits=[];if(h.steps!=null)bits.push(`${n0(h.steps)} steps`);if(h.sleep!=null)bits.push(`${fmtHrs(h.sleep)} sleep`);if(h.rhr!=null)bits.push(`HR ${h.rhr}`);
+  return bits.join(' · ');
+}
+function healthSheet(){
+  openSheet(`<form data-form="health" class="stack" autocomplete="off">
+    <div class="sec-title">Import from Garmin</div>
+    <p class="small muted">Run the DAD MODE Shortcut first. It copies a line starting with DADMODE. Then tap Paste and import.</p>
+    <button class="btn primary block" type="button" data-action="healthPaste">Paste and import</button>
+    <div class="field"><label for="hl_txt">Or paste it here yourself</label><textarea class="input" id="hl_txt" name="txt" data-nofocus placeholder="DADMODE steps=9500 sleep=7.2 active=520 rhr=58" style="min-height:70px"></textarea></div>
+    <button class="btn block" type="submit">Import</button>
+    <button class="link" type="button" data-action="healthHelp">How to set up the Shortcut</button>
+  </form>`);
+}
+function healthHelp(){
+  const st=(t,d)=>`<li style="margin-bottom:8px"><b style="color:var(--fg)">${t}</b><br>${d}</li>`;
+  openSheet(`<div class="sec-title">Garmin setup</div>
+  <div class="eyebrow">1 · Send Garmin data to Apple Health (once)</div>
+  <ol class="safety">${st('Garmin Connect app','More → Settings → Connected Apps → Apple Health. Turn on steps, sleep, heart rate and calories.')}${st('Health app','Open a Steps entry → Data Sources & Access. Check Garmin Connect is listed and allowed to write.')}</ol>
+  <div class="eyebrow">2 · Build the DAD MODE Shortcut (about 5 minutes)</div>
+  <p class="small muted">In the Shortcuts app tap +, name it DAD MODE, and add these actions in order:</p>
+  <ol class="safety">
+    ${st('Steps','Find Health Samples: Type is Steps, Start Date is today, Source is Connect. Group By: Day. Then Calculate Statistics: Sum. Rename the result Steps.')}
+    ${st('Sleep','Find Health Samples: Type is Sleep Analysis, Start Date is in the last 1 day, Source is Connect, Value is not In Bed, Value is not Awake. Then Get Details of Health Samples: Duration. Then Calculate Statistics: Sum. Rename it Sleep.')}
+    ${st('Active calories','Find Health Samples: Type is Active Energy, Start Date is today, Group By: Day. Calculate Statistics: Sum. Rename it Active.')}
+    ${st('Resting heart rate','Find Health Samples: Type is Resting Heart Rate, Sort by Start Date, Latest First, Limit 1. Get Details: Value. Rename it RHR.')}
+    ${st('Text','Add a Text action: DADMODE steps=[Steps] sleep=[Sleep] active=[Active] rhr=[RHR]. Insert each result as a variable.')}
+    ${st('Copy to Clipboard','Then Show Notification: Copied. Open DAD MODE and tap Import.')}
+  </ol>
+  <div class="callout">The first run asks permission to read Health. Allow all four. Filtering Source to Connect stops your iPhone's own step count being added twice. If Garmin shows under another name in Data Sources, use that name. Any value the Shortcut can't find is simply skipped.</div>
+  <div class="eyebrow">3 · Make it quick</div>
+  <ol class="safety">${st('Home screen','In Shortcuts, long-press DAD MODE → Share → Add to Home Screen. Put it next to the app.')}${st('Daily habit','Each morning: tap the Shortcut, open the app, tap Import. Do it again in the evening for the full step count.')}</ol>
+  <button class="btn primary block" data-action="healthImport">I've set it up, import now</button>`);
+}
+function reviewWeekKey(k){
+  const ws=weekStart(k), dow=parseDk(k).getDay();
+  if(dow===0) return ws;
+  const prev=addDays(ws,-7);
+  if(prev>=weekStart(S.settings.startDate)&&!S.reviews.some(r=>r.week===prev)&&daysBetween(S.settings.startDate,k)>=6) return prev;
+  return null;
+}
+function reviewPrompt(k){
+  const wkey=reviewWeekKey(k); if(!wkey||S.reviews.some(r=>r.week===wkey)) return '';
+  return `<section class="card mission" aria-label="Weekly review"><span class="m-label">SUNDAY REVIEW</span><p>Five minutes to look back at the week and set up the next one.</p><button class="btn primary" data-action="openReview">Start weekly review</button></section>`;
+}
+
+/* ---------- SNACK ---------- */
+let SF={step:'start',reason:null,msg:''};
+let breath=null;
+function viewSnack(){
+  return `
+  <header class="top"><div><div class="eyebrow">Afternoon cravings</div><div class="brand" style="font-size:30px">BEAT THE 3PM<br><b>SNACK ATTACK</b></div></div></header>
+  <section class="card">${snackFlow()}</section>
+  ${snackInsights()}
+  ${sleepSnackCard()}
+  <section class="card" aria-label="Snack library">
+    <div class="row between"><div class="sec-title">Snack library</div><span class="est">Estimates</span></div>
+    <p class="small muted">Planned treats are part of the plan. Tap Have to add one to today's food diary.</p>
+    <div>${SNACKS.map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.name)}</div><div class="s">~${x.kcal} kcal · ~${x.p}g protein</div></div><button class="btn small" data-action="haveSnack" data-id="${x.id}" data-reason="planned">Have</button></div>`).join('')}</div>
+    <p class="tiny faint">Values are rough estimates for typical portions. Check packet labels for your exact products.</p>
+  </section>`;
+}
+function snackFlow(){
+  if(SF.step==='start') return `
+    <p class="muted">Cravings are normal. This takes 30 seconds and helps you choose on purpose.</p>
+    <button class="crave" data-action="crave"><span class="num">I'm craving a snack</span><span>Tap when the urge hits</span></button>`;
+  if(SF.step==='ask') return `
+    <div class="sec-title">What's really going on?</div>
+    <div class="stack" style="gap:8px">${Object.entries(REASONS).map(([k,r])=>`<button class="opt" data-action="reason" data-r="${k}"><b>${r.label}</b><span>${r.sub}</span></button>`).join('')}</div>
+    <button class="link" data-action="snackReset">Cancel</button>`;
+  if(SF.step==='suggest'){
+    const r=SF.reason;
+    const cards=ids=>ids.map(id=>SNACKS.find(x=>x.id===id)).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.name)}</div><div class="s">~${x.kcal} kcal · ~${x.p}g protein <span class="est">est.</span></div></div><button class="btn small primary" data-action="haveSnack" data-id="${x.id}" data-reason="${r}">Have this</button></div>`).join('');
+    const acts=list=>list.map(a=>`<div class="item"><div class="grow"><div class="t">${esc(a)}</div></div><button class="btn small" data-action="didAct" data-act="${esc(a)}">Did it</button></div>`).join('');
+    let body='';
+    if(r==='bored') body=`<div class="sec-title">Bored, not hungry</div><p class="muted">Give your brain something else for 5–10 minutes. Pick one:</p><div>${acts(BORED_ACTS)}</div><p class="small muted">Still want something afterwards? That's fine. Pick a planned snack below.</p><div>${cards(['pop','yog','shake'])}</div>`;
+    if(r==='stressed') body=`<div class="sec-title">A quick reset</div><p class="muted">Stress eating is your body asking for a break. Give it one.</p>${breathBox()}<div>${acts(STRESS_ACTS)}</div><p class="small muted">If you still want a snack after the reset, go for a filling one.</p><div>${cards(['yog','egg'])}</div>`;
+    if(r==='hungry') body=`<div class="sec-title">Genuinely hungry</div><p class="muted">Then eat. Something with protein will keep you going until dinner.</p><div>${cards(['shake','egg','cott','yog','fpb'])}</div>`;
+    if(r==='sweet') body=`<div class="sec-title">Sweet tooth</div><p class="muted">Have it on purpose. Put it on a plate, sit down away from the desk, and enjoy it.</p><div>${cards(['dc','cs','pud','bisc'])}</div>`;
+    return body+`<div class="row wrap"><button class="btn small ghost" data-action="otherSnack">I had something else</button><button class="link" data-action="snackReset">Start again</button></div>`;
+  }
+  return `<div class="sec-title">Logged</div><p>${esc(SF.msg)}</p><button class="btn ghost" data-action="snackReset">Done</button>`;
+}
+function breathBox(){
+  const on=breath&&!breath.done;
+  return `<div class="breath"><div class="breath-box" id="bBox"><span class="num" id="bTxt" style="font-size:18px">${on?'':'Box breathing'}</span></div>
+  <p class="small muted" id="bSub">${on?'':'In 4 · hold 4 · out 4 · hold 4, for 2 minutes'}</p>
+  <button class="btn small ${on?'ghost':'primary'}" data-action="breath">${on?'Stop':'Start 2-minute reset'}</button></div>`;
+}
+function snackInsights(){
+  const t=todayKey(), from=addDays(t,-13);
+  const rec=S.snacks.filter(x=>x.date>=from);
+  if(!S.snacks.length) return `<section class="card"><div class="sec-title">Snack history</div><p class="small muted">Each time you use the button, it's saved here. After a week you'll see when and why cravings hit, so you can plan around them.</p></section>`;
+  const byR={};rec.forEach(x=>byR[x.reason]=(byR[x.reason]||0)+1);
+  const buckets=[['Before 12',0,12],['12–2pm',12,14],['2–4pm',14,16],['4–6pm',16,18],['After 6pm',18,24]];
+  const byH=buckets.map(([l,a,b])=>[l,rec.filter(x=>x.hour>=a&&x.hour<b).length]);
+  const maxR=Math.max(1,...Object.values(byR)), maxH=Math.max(1,...byH.map(x=>x[1]));
+  const redirected=rec.filter(x=>x.outcome==='redirected').length;
+  const labels={...Object.fromEntries(Object.entries(REASONS).map(([k,v])=>[k,v.label])),planned:'Planned snack'};
+  const topR=Object.entries(byR).sort((a,b)=>b[1]-a[1])[0], topH=[...byH].sort((a,b)=>b[1]-a[1])[0];
+  let insight='';
+  if(rec.length>=3&&topR&&topH[1]>0){
+    insight=topR[0]==='bored'?`Most cravings are boredom, peaking ${topH[0]}. A short walk booked just before then could head them off.`:
+      topR[0]==='stressed'?`Stress is the main trigger, peaking ${topH[0]}. Try the 2-minute reset before reaching for food.`:
+      topR[0]==='hungry'?`You're often genuinely hungry ${topH[0]}. A bigger, higher-protein lunch may help.`:
+      topR[0]==='sweet'?`Sweet cravings lead the way, peaking ${topH[0]}. Plan a treat for that window so it's a choice, not a raid.`:
+      `Most snacks are planned. That's the habit working.`;
+  }
+  return `<section class="card" aria-label="Snack history">
+    <div class="row between"><div class="sec-title">Snack history</div><span class="small muted">Last 14 days</span></div>
+    ${insight?`<div class="rec">${esc(insight)}</div>`:''}
+    <div class="statrow"><div class="stat"><span class="eyebrow">Cravings</span><span class="num">${rec.length}</span></div><div class="stat"><span class="eyebrow">Redirected</span><span class="num">${redirected}</span></div><div class="stat"><span class="eyebrow">Snacks had</span><span class="num">${rec.length-redirected}</span></div></div>
+    <div class="eyebrow">Why</div>
+    <div class="hbars">${Object.entries(labels).filter(([k])=>byR[k]).map(([k,l])=>`<div class="hbar"><span>${l}</span>${bar(byR[k]/maxR)}<span class="c">${byR[k]}</span></div>`).join('')||'<p class="empty">Nothing in the last 14 days.</p>'}</div>
+    <div class="eyebrow">When</div>
+    <div class="hbars">${byH.map(([l,c])=>`<div class="hbar"><span>${l}</span>${bar(c/maxH,'amber')}<span class="c">${c}</span></div>`).join('')}</div>
+    <div class="eyebrow">Recent</div>
+    <div>${[...S.snacks].sort((a,b)=>b.ts-a.ts).slice(0,8).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.item)}</div><div class="s">${fmtDate(x.date)} ${p2(x.hour)}:${p2(x.min||0)} · ${labels[x.reason]||x.reason}${x.outcome==='ate'&&x.kcal?` · ~${x.kcal} kcal`:''}</div></div><button class="btn small ghost" data-action="delSnack" data-id="${x.id}" aria-label="Delete">${ICON.close.replace('<svg','<svg width="14" height="14"')}</button></div>`).join('')}</div>
+  </section>`;
+}
+function logSnack(reason,outcome,item,kcal,p){
+  const now=new Date();
+  const entry={id:uid(),ts:Date.now(),date:todayKey(),hour:now.getHours(),min:now.getMinutes(),reason,outcome,item,kcal:kcal||0,protein:p||0};
+  if(outcome==='ate'){const D=ensureDay(entry.date);const fid=uid();D.food.push({id:fid,meal:'snacks',name:item,kcal:kcal||0,protein:p||0});entry.foodId=fid}
+  S.snacks.push(entry);save();
+}
+
+/* ---------- FOOD ---------- */
+let foodDate=null;
+function viewFood(){
+  if(foodMode==='plan')return viewPlan();
+  if(foodMode==='shop')return viewShop();
+  const k=foodDate||todayKey(), D=getDay(k), s=S.settings, kc=kcalOf(D), pr=protOf(D), left=s.kcal-kc;
+  const isToday=k===todayKey();
+  return `
+  <header class="top"><div><div class="eyebrow">Food diary</div><div class="brand" style="font-size:30px">NUTRITION</div></div></header>
+  ${foodModeSeg()}
+  <div class="datenav"><button class="icon-btn" data-action="foodDay" data-d="-1" aria-label="Previous day">${ICON.left}</button><div style="text-align:center"><div style="font-weight:600">${isToday?'Today':fmtDay(k)}</div>${isToday?`<div class="tiny muted">${fmtDay(k)}</div>`:`<button class="link" data-action="foodDay" data-d="0">Back to today</button>`}</div><button class="icon-btn" data-action="foodDay" data-d="1" aria-label="Next day" ${isToday?'disabled style="opacity:.3"':''}>${ICON.right}</button></div>
+  <section class="card">
+    <div class="row between" style="align-items:flex-end">
+      <div><div class="eyebrow">${left>=0?'Calories left':'Over target'}</div><div class="num" style="font-size:56px;color:${left>=0?'var(--fg)':'var(--amber)'}">${n0(Math.abs(left))}</div></div>
+      <div style="text-align:right"><div class="small muted">${n0(kc)} eaten</div><div class="small muted">${n0(s.kcal)} target <span class="est">est.</span></div></div>
+    </div>
+    ${bar(kc/s.kcal,kc>s.kcal*1.1?'amber':'')}
+    <div class="row between"><span class="eyebrow">Protein</span><span class="small"><b>${n0(pr)}g</b> <span class="muted">/ ${s.protein}g</span></span></div>
+    ${bar(pr/s.protein)}
+    ${left<0?`<p class="small muted">A bit over today. No drama. One day doesn't decide anything; the weekly picture does.</p>`:''}
+  </section>
+  <div class="grid2"><button class="btn primary" data-action="scan">Scan barcode</button><button class="btn" data-action="addFood" data-meal="${defaultMeal()}">Add food</button></div>
+  ${planTodayCard(k,D)}
+  ${MEALS.map(([m,l])=>{const items=D.food.filter(f=>f.meal===m);return `<section class="card" style="gap:4px">
+    <div class="meal-h"><h3>${l}</h3><div class="row"><span class="small muted">${n0(sum(items,'kcal'))} kcal</span><button class="btn small" data-action="addFood" data-meal="${m}">+ Add</button></div></div>
+    ${items.length?items.map(f=>`<button class="entry" data-action="editFood" data-id="${f.id}"><div class="grow"><div class="t">${esc(f.name)}</div></div><span class="s">${n0(f.kcal)} kcal · ${n0(f.protein)}g</span></button>`).join(''):`<p class="empty">Nothing logged yet.</p>`}
+  </section>`}).join('')}
+  <section class="card">
+    <div class="row between"><div class="sec-title">Quick add</div><span class="est">Estimates</span></div>
+    ${S.favourites.length?`<div class="eyebrow">Your favourites</div><div class="stack" style="gap:6px">${S.favourites.map(f=>`<div class="row"><button class="pick" data-action="quickAdd" data-fav="${f.id}"><span class="t">${esc(f.name)}</span><span class="s">${n0(f.kcal)} kcal · ${n0(f.protein)}g</span></button><button class="icon-btn" data-action="delFav" data-id="${f.id}" aria-label="Remove favourite">${ICON.close}</button></div>`).join('')}</div>`:`<p class="small muted">Save meals you eat often as favourites when you add them, and they'll appear here for one-tap logging.</p>`}
+    ${Object.entries(EXAMPLES).map(([m,list])=>`<div class="eyebrow">${m} ideas</div><div class="stack" style="gap:6px">${list.map(([n,c,p])=>`<button class="pick" data-action="quickAdd" data-meal="${m}" data-name="${esc(n)}" data-kcal="${c}" data-p="${p}"><span class="t">${esc(n)}</span><span class="s">~${c} kcal · ~${p}g</span></button>`).join('')}</div>`).join('')}
+    <p class="tiny faint">There's no food database connected. Numbers are typical estimates; packet labels or a scale give you better ones. Edit any entry after adding it.</p>
+  </section>`;
+}
+function foodSheet(o){
+  const meal=o.meal||'snacks', fav=S.favourites.some(f=>f.name===o.name);
+  openSheet(`<form data-form="food" class="stack" autocomplete="off">
+    <div class="sec-title">${o.id?'Edit entry':'Add food'}</div>
+    <input type="hidden" name="id" value="${esc(o.id||'')}">
+    <div class="field"><label for="f_meal">Meal</label><select class="input" id="f_meal" name="meal">${MEALS.map(([m,l])=>`<option value="${m}" ${m===meal?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="field"><label for="f_name">Food</label><input class="input" id="f_name" name="name" required maxlength="80" value="${esc(o.name||'')}" placeholder="e.g. Chicken rice bowl"></div>
+    <div class="grid2"><div class="field"><label for="f_kcal">Calories (est.)</label><input class="input" id="f_kcal" name="kcal" inputmode="numeric" required value="${o.kcal??''}" placeholder="kcal"></div>
+    <div class="field"><label for="f_p">Protein (g)</label><input class="input" id="f_p" name="protein" inputmode="decimal" value="${o.protein??''}" placeholder="g"></div></div>
+    <label class="check" style="border:0"><input type="checkbox" id="f_fav" name="fav" ${fav?'checked':''}><span class="box">${TICK}</span><span class="lbl">Save as a favourite</span></label>
+    <div class="field"><label for="f_ing">Ingredients for your shopping list (favourites only, optional)</label><input class="input" id="f_ing" name="ing" maxlength="200" value="${esc((o.ing||(S.favourites.find(f=>f.name===o.name)||{}).ing||[]).join(', '))}" placeholder="e.g. Chicken breast, Rice, Broccoli"></div>
+    <div class="row"><button class="btn primary" style="flex:1" type="submit">${o.id?'Save changes':'Add to diary'}</button>${o.id?`<button class="btn danger" type="button" data-action="delFood" data-id="${o.id}">Delete</button>`:''}</div>
+  </form>`);
+}
+
+/* ---------- TRAIN ---------- */
+let P=null;
+function viewTrain(){
+  const k=todayKey(), s=S.settings, ws=weekStart(k), st=weekStats(ws), ph=phaseOf(k);
+  const recent=[...S.workouts].sort((a,b)=>(b.date+b.ts)>(a.date+a.ts)?1:-1).slice(0,12);
+  const lastStrength=S.workouts.filter(w=>['A','B','C'].includes(w.type)&&w.status==='done').sort((a,b)=>b.ts-a.ts).slice(0,4);
+  const suggest3=s.rounds<3&&lastStrength.length>=4&&lastStrength.every(w=>(w.rounds||2)>=s.rounds);
+  const weeksAt2=[1,2].map(i=>weekStats(addDays(ws,-7*i)).strength>=2).every(Boolean);
+  const suggestFreq=s.workoutsPerWeek<3&&weeksAt2;
+  const weeksBack=[5,4,3,2,1,0].map(i=>{const w=addDays(ws,-7*i);return {w,c:weekStats(w).strength}});
+  const maxC=Math.max(3,...weeksBack.map(x=>x.c));
+  return `
+  <header class="top"><div><div class="eyebrow">Minimal kit: one kettlebell, one mat</div><div class="brand" style="font-size:30px">TRAINING</div></div></header>
+  <section class="card mission">
+    <div class="row between"><span class="m-label">PHASE ${ph} OF 3</span><span class="tiny muted">${PHASES[ph].weeks}${+s.phase?' · set manually':''}</span></div>
+    <div class="m-title">${PHASES[ph].name}</div>
+    <p class="muted">${PHASES[ph].focus}</p>
+    <div class="dots">${[1,2,3].map(n=>`<i class="${n<ph?'on':n===ph?'cur':''}"></i>`).join('')}</div>
+  </section>
+  <section class="card">
+    <div class="row between"><div class="sec-title">This week</div><span class="chip ${st.strength>=s.workoutsPerWeek?'on':''}">${st.strength}/${s.workoutsPerWeek} strength</span></div>
+    <div class="wk-plan">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i),p=planFor(d,getDay(d));const lg=S.workouts.filter(w=>w.date===d);const done=lg.some(w=>w.status==='done'),skip=!done&&lg.some(w=>w.status==='skipped');const lbl=p.kind==='strength'?p.w:p.kind==='walk'?'W':p.kind==='recovery'?'R':p.kind==='weekend'?'F':'R';return `<div class="${d===k?'today':''}"><span class="b ${p.kind==='strength'?'s':''} ${done?'done':''} ${skip?'skip':''}">${lbl}</span>${DOW[parseDk(d).getDay()].slice(0,3)}</div>`}).join('')}</div>
+    <p class="tiny faint">Letters are strength workouts. W walk · R recovery · F family or sport. Green means something was logged that day.</p>
+    <div class="statrow">
+      <div class="stat"><span class="eyebrow">Sessions</span><span class="num">${st.wos.filter(w=>w.status==='done').length}</span></div>
+      <div class="stat"><span class="eyebrow">Active min</span><span class="num">${n0(st.activeMin)}</span></div>
+      <div class="stat"><span class="eyebrow">Skipped</span><span class="num">${st.skipped}</span></div>
+    </div>
+  </section>
+  ${suggest3?`<div class="rec">Four solid sessions at ${s.rounds} rounds. Ready to try 3 rounds? <button class="link" data-action="setRounds" data-n="3">Move to 3 rounds</button></div>`:''}
+  ${suggestFreq?`<div class="rec">Two strength sessions a week for two weeks running. When it feels right, build to three. <button class="link" data-action="setFreq" data-n="3">Switch to 3 a week</button></div>`:''}
+  <section class="card">
+    <div class="row between"><span class="eyebrow">Rounds per workout</span><div class="seg" style="width:140px">${[2,3].map(n=>`<button class="${s.rounds===n?'on':''}" data-action="setRounds" data-n="${n}">${n}</button>`).join('')}</div></div>
+    <div class="row between"><span class="eyebrow">Strength sessions a week</span><div class="seg" style="width:140px">${[2,3].map(n=>`<button class="${s.workoutsPerWeek===n?'on':''}" data-action="setFreq" data-n="${n}">${n}</button>`).join('')}</div></div>
+  </section>
+  ${['A','B','C'].map(id=>{const W=WORKOUTS[id];const locked=id==='C'&&ph<2;return `<section class="card" style="gap:6px">
+    <div class="row between"><div><div class="sec-title">${W.name}</div><div class="small muted">${s.rounds} rounds · ~20 min · ${s.restSec}s rest</div></div>${locked?'<span class="chip">Joins week 5</span>':''}</div>
+    ${locked?'<p class="small muted">Goblet squats and kettlebell swings. It joins your rotation in phase 2, but you can try it early.</p>':''}
+    ${ph===3?'<p class="small" style="color:var(--green-hi)">Phase 3: use the harder version where it feels solid.</p>':''}
+    <div>${itemsFor(id,ph).map(({id:e,reps:r})=>`<details class="ex"><summary><span>${EX[e].name}</span><span class="r">${r}</span></summary><div class="how"><span>${EX[e].how}</span><span><b style="color:var(--fg)">Easier:</b> ${EX[e].easier}</span><span><b style="color:var(--fg)">Harder:</b> ${EX[e].harder}</span></div></details>`).join('')}</div>
+    <div class="row" style="margin-top:6px"><button class="btn primary" style="flex:1" data-action="startWorkout" data-w="${id}">Start</button><button class="btn ghost" data-action="skipWorkout" data-w="${id}">Skip</button></div>
+  </section>`}).join('')}
+  <section class="card">
+    <div class="sec-title">Walking & activity</div>
+    <p class="small muted">Walking counts as its own activity. Sports and cardio are optional extras for when you've got more time.</p>
+    <div class="row"><button class="btn primary" style="flex:1" data-action="logAct" data-a="Walk">Log a walk</button><button class="btn" style="flex:1" data-action="logAct" data-a="">Log other activity</button></div>
+  </section>
+  <section class="card">
+    <div class="row between"><div class="sec-title">Strength sessions</div><span class="small muted">Last 6 weeks</span></div>
+    <div class="week" style="grid-template-columns:repeat(6,1fr)">${weeksBack.map(x=>`<div class="wday ${x.w===ws?'today':''}"><div class="wcol" style="height:72px"><i style="height:${(x.c/maxC*100).toFixed(0)}%"></i></div><span class="d">${x.c}</span><span class="tiny faint">${fmtDate(x.w)}</span></div>`).join('')}</div>
+  </section>
+  <section class="card">
+    <div class="sec-title">History</div>
+    ${recent.length?`<div>${recent.map(w=>`<div class="item"><div class="grow"><div class="t">${esc(w.label)}${w.status==='skipped'?' · skipped':''}</div><div class="s">${fmtDay(w.date)}${w.minutes?` · ${w.minutes} min`:''}${w.rounds?` · ${w.rounds} rounds`:''}${w.note?` · ${esc(w.note)}`:''}</div></div><button class="btn small ghost" data-action="delWorkout" data-id="${w.id}" aria-label="Delete">${ICON.close.replace('<svg','<svg width="14" height="14"')}</button></div>`).join('')}</div>`:`<p class="small muted">Finished and skipped sessions show up here.</p>`}
+  </section>
+  <section class="card">
+    <div class="sec-title">Train safe</div>
+    <ul class="safety">
+      <li>Warm up for 2–3 minutes first: march on the spot, arm circles, a few slow squats.</li>
+      <li>Move with control. Stop if anything feels sharp or painful, and use the easier version.</li>
+      <li>Keep a flat back on deadlifts and rows. Lift with your legs and hips.</li>
+      <li>Learn the swing slowly. It's a hip hinge; if your lower back feels it, go back to deadlifts for a while.</li>
+      <li>Leave a couple of reps in the tank. You should finish feeling better than you started.</li>
+      <li>Broken sleep? Swap strength for a walk. Missing one session changes nothing.</li>
+      <li>If you have chest pain, dizziness or unusual breathlessness, stop and speak to your GP.</li>
+    </ul>
+  </section>`;
+}
+function playerRender(){
+  const el=$('#player');
+  if(!P){el.hidden=true;el.innerHTML='';return}
+  el.hidden=false;
+  const W=WORKOUTS[P.w];
+  if(P.finished){
+    const mins=Math.max(1,Math.round((P.end-P.start)/60000));
+    const st=weekStats(weekStart(todayKey()));
+    el.innerHTML=`<div class="in"><div class="row between"><span class="eyebrow">${W.name}</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;align-items:flex-start">
+      <div class="m-title" style="font-family:var(--display);font-size:56px;font-weight:700;line-height:.9">WORKOUT<br><span style="color:var(--green-hi)">DONE</span></div>
+      <div class="statrow" style="width:100%"><div class="stat"><span class="eyebrow">Time</span><span class="num">${mins}m</span></div><div class="stat"><span class="eyebrow">Rounds</span><span class="num">${P.completedRounds}</span></div><div class="stat"><span class="eyebrow">This week</span><span class="num">${st.strength}/${S.settings.workoutsPerWeek}</span></div></div>
+      <p class="muted">That's another one banked. Grab some water and get some protein in with breakfast.</p>
+    </div>
+    <button class="btn primary block" data-action="closePlayer">Back to the app</button></div>`;
+    return;
+  }
+  const it=P.items[P.idx], reps=it.reps, E=EX[it.id];
+  const next=P.idx<P.items.length-1?EX[P.items[P.idx+1].id].name:(P.round<P.rounds?'Round '+(P.round+1):'Finish');
+  if(P.confirmEnd){
+    el.innerHTML=`<div class="in"><div class="sec-title">End workout?</div><p class="muted">You've done ${P.round-1} full round${P.round-1===1?'':'s'} so far. Anything counts.</p>
+    <button class="btn primary block" data-action="endSave">Save what I've done</button>
+    <button class="btn ghost block" data-action="endDiscard">Discard this session</button>
+    <button class="btn block" data-action="endCancel">Keep going</button></div>`;return;
+  }
+  let main;
+  if(P.rest){
+    main=`<div class="stack" style="align-items:center;flex:1;justify-content:center"><span class="eyebrow">Rest</span><div class="timer-big" id="pRest">${Math.max(0,Math.ceil((P.rest.end-Date.now())/1000))}</div><p class="muted">Next: <b style="color:var(--fg)">${P.rest.label}</b></p><div class="row"><button class="btn ghost" data-action="restAdd">+15s</button><button class="btn primary" data-action="restSkip">Skip rest</button></div></div>`;
+  } else {
+    const timed=it.secs;
+    const tLeft=P.timer?Math.max(0,Math.ceil((P.timer.end-Date.now())/1000)):it.secs;
+    main=`<div class="stack" style="flex:1">
+      <div class="p-ex">${E.name}</div>
+      ${timed?`<div class="p-reps" id="pTimer">${tLeft}s</div>${it.id==='carry'?'<p class="small muted">Swap hands halfway.</p>':''}`:`<div class="p-reps">${reps}</div>`}
+      <p class="muted">${E.how}</p>
+      <div class="callout"><b style="color:var(--fg)">Easier:</b> ${E.easier}<br><b style="color:var(--fg)">Harder:</b> ${E.harder}</div>
+    </div>
+    ${timed&&!P.timer?`<button class="btn block" data-action="startTimer">Start ${it.secs}s timer</button>`:''}
+    <button class="btn primary block" data-action="exDone" style="min-height:58px;font-size:17px">Done · next: ${next}</button>`;
+  }
+  el.innerHTML=`<div class="in">
+    <div class="row between"><div><div class="eyebrow">${W.name} · Round ${P.round} of ${P.rounds}</div><div class="num" style="font-size:26px" id="pClock">0:00</div></div><button class="icon-btn" data-action="endAsk" aria-label="End workout">${ICON.close}</button></div>
+    <div class="dots">${P.items.map((_,i)=>`<i class="${i<P.idx?'on':i===P.idx?'cur':''}"></i>`).join('')}</div>
+    ${main}
+  </div>`;
+  tick();
+}
+let audioCtx=null;
+function beep(n=1){try{if(!audioCtx)return;for(let i=0;i<n;i++){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=880;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime+i*0.25;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);o.start(t);o.stop(t+0.2)}}catch(e){}}
+let wakeLock=null;
+async function lockScreen(){try{if('wakeLock' in navigator)wakeLock=await navigator.wakeLock.request('screen')}catch(e){}}
+function unlockScreen(){try{wakeLock&&wakeLock.release()}catch(e){}wakeLock=null}
+function advance(){
+  const W=WORKOUTS[P.w];
+  if(P.idx<P.items.length-1){P.idx++;P.timer=null;P.rest={end:Date.now()+S.settings.restSec*1000,label:EX[P.items[P.idx].id].name};}
+  else if(P.round<P.rounds){P.completedRounds=P.round;P.round++;P.idx=0;P.timer=null;P.rest={end:Date.now()+90*1000,label:`Round ${P.round}: ${EX[P.items[0].id].name}`};}
+  else {P.completedRounds=P.rounds;finishWorkout(true);}
+}
+function finishWorkout(full){
+  P.end=Date.now();
+  const mins=Math.max(1,Math.round((P.end-P.start)/60000));
+  const k=todayKey();
+  S.workouts.push({id:uid(),ts:Date.now(),date:k,type:P.w,label:WORKOUTS[P.w].name,status:'done',minutes:mins,rounds:P.completedRounds,note:full?'':'ended early'});
+  const D=ensureDay(k);const plan=planFor(k,D);if(plan.kind==='strength'||plan.swapped)D.mission=true;
+  save();P.finished=true;P.rest=null;P.timer=null;beep(3);playerRender();
+}
+function tick(){
+  if(P&&!P.finished&&!P.confirmEnd){
+    const c=$('#pClock');if(c){const s=Math.floor((Date.now()-P.start)/1000);c.textContent=`${Math.floor(s/60)}:${p2(s%60)}`}
+    if(P.rest){const left=Math.ceil((P.rest.end-Date.now())/1000);const r=$('#pRest');if(r)r.textContent=Math.max(0,left);if(left<=0){P.rest=null;beep(2);playerRender()}}
+    if(P.timer){const left=Math.ceil((P.timer.end-Date.now())/1000);const t=$('#pTimer');if(t)t.textContent=Math.max(0,left)+'s';if(left<=0&&!P.timer.rang){P.timer.rang=true;beep(2);if(t)t.textContent='Done'}}
+  }
+  if(breath&&!breath.done){
+    const el=(Date.now()-breath.start)/1000;
+    if(el>=120){breath.done=true;beep(1);const tx=$('#bTxt');if(tx)tx.textContent='Nice';const sb=$('#bSub');if(sb)sb.textContent='Two minutes done. How do you feel now?';const bx=$('#bBox');if(bx)bx.className='breath-box';}
+    else{const ph=Math.floor(el/4)%4;if(ph!==breath.ph){breath.ph=ph;const names=['Breathe in','Hold','Breathe out','Hold'];const tx=$('#bTxt');if(tx)tx.textContent=names[ph];const bx=$('#bBox');if(bx)bx.className='breath-box '+(ph===0||ph===1?'in':'out');const sb=$('#bSub');if(sb)sb.textContent=`${Math.ceil(120-el)}s left`}
+      else{const sb=$('#bSub');if(sb)sb.textContent=`${Math.ceil(120-el)}s left`}}
+  }
+}
+setInterval(tick,250);
+
+/* ---------- PROGRESS ---------- */
+function weightChart(){
+  const ws=weightsSorted(), s=S.settings;
+  const W=340,H=210,L=34,R=40,T=12,B=26;
+  const startK=ws.length&&ws[0].date<s.startDate?ws[0].date:s.startDate;
+  const pts=ws.map(w=>({t:parseDk(w.date).getTime(),kg:w.kg}));
+  if(!ws.some(w=>w.date<=s.startDate))pts.unshift({t:parseDk(s.startDate).getTime(),kg:s.startWeight});
+  const x0=parseDk(startK).getTime(), lastT=pts[pts.length-1].t;
+  const x1=Math.max(lastT,x0+21*DAY);
+  const vals=pts.map(p=>p.kg);
+  const yMin=Math.floor(Math.min(...vals,s.stretch)-0.5), yMax=Math.ceil(Math.max(...vals,s.startWeight)+0.5);
+  const sx=t=>L+(t-x0)/(x1-x0)*(W-L-R), sy=v=>T+(yMax-v)/(yMax-yMin)*(H-T-B);
+  const step=(yMax-yMin)>12?4:(yMax-yMin)>6?2:1;
+  let g='';
+  for(let v=Math.ceil(yMin/step)*step;v<=yMax;v+=step){g+=`<line x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${sy(v)+3}" text-anchor="end">${v}</text>`}
+  [[s.target,'var(--green)'],[s.stretch,'var(--faint)']].forEach(([v,c])=>{g+=`<line x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" stroke="${c}" stroke-width="1.2" stroke-dasharray="4 4"/><text x="${W-R+4}" y="${sy(v)+3}" style="fill:${c}">${v}kg</text>`});
+  const ra=pts.map(p=>({t:p.t,v:avg(pts.filter(q=>q.t<=p.t&&q.t>p.t-7*DAY).map(q=>q.kg))}));
+  const path=ra.map((p,i)=>`${i?'L':'M'}${sx(p.t).toFixed(1)},${sy(p.v).toFixed(1)}`).join('');
+  const area=ra.length>1?`<path d="${path}L${sx(ra[ra.length-1].t).toFixed(1)},${H-B}L${sx(ra[0].t).toFixed(1)},${H-B}Z" fill="var(--green-wash)"/>`:'';
+  const dots=pts.map((p,i)=>`<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.kg).toFixed(1)}" r="${i===pts.length-1?4.5:2.6}" fill="${i===pts.length-1?'var(--green-hi)':'var(--muted)'}"/>`).join('');
+  const lastX=sx(pts[pts.length-1].t);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight trend chart">${g}${area}<path d="${path}" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${dots}
+  <text x="${L}" y="${H-8}">${fmtDate(startK)}</text><text x="${W-R}" y="${H-8}" text-anchor="end">${fmtDate(dk(new Date(x1)))}</text>
+  <text x="${Math.min(lastX,W-R-30)}" y="${sy(pts[pts.length-1].kg)-9}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${kg1(pts[pts.length-1].kg)}</text></svg>
+  <div class="row small muted" style="gap:14px"><span class="row" style="gap:6px"><i style="width:14px;height:3px;background:var(--green);border-radius:2px;display:inline-block"></i>7-day average</span><span class="row" style="gap:6px"><i style="width:7px;height:7px;background:var(--muted);border-radius:50%;display:inline-block"></i>Weigh-ins</span></div>`;
+}
+function viewProgress(){
+  const s=S.settings, k=todayKey(), ws=weightsSorted(), cw=currentWeight(), lost=s.startWeight-cw;
+  const wa=weeklyAverages();
+  const weeks=Math.max(1,daysBetween(s.startDate,k)/7);
+  const rate=ws.length>1&&daysBetween(s.startDate,k)>=7?lost/weeks:null;
+  const rv=[...S.reviews].sort((a,b)=>a.week<b.week?1:-1);
+  const wkey=reviewWeekKey(k);
+  return `
+  <header class="top"><div><div class="eyebrow">12 week reset</div><div class="brand" style="font-size:30px">PROGRESS</div></div><button class="icon-btn" data-action="settings" aria-label="Settings and data">${ICON.gear}</button></header>
+  <section class="card">
+    <div class="sec-title">Log your weight</div>
+    <form data-form="weight" class="row" style="align-items:flex-end" autocomplete="off">
+      <div class="field" style="flex:1.2"><label for="w_date">Date</label><input class="input" type="date" id="w_date" name="date" value="${k}" max="${k}"></div>
+      <div class="field" style="flex:1"><label for="w_kg">Weight (kg)</label><input class="input" id="w_kg" name="kg" inputmode="decimal" placeholder="${kg1(cw)}" required></div>
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <p class="tiny faint">Weigh three mornings a week (say Mon, Wed, Fri), after the toilet and before breakfast. Daily swings of 0.5–1.5kg from water, salt and carbs are normal. Watch the 7-day average, not single readings.</p>
+  </section>
+  <section class="card">
+    <div class="row between"><div class="sec-title">Trend</div><span class="small muted">${ws.length?`${ws.length} weigh-in${ws.length===1?'':'s'}`:`Starting at ${kg1(s.startWeight)}kg`}</span></div>
+    ${weightChart()}
+    <div class="statrow">
+      <div class="stat"><span class="eyebrow">Lost</span><span class="num" style="color:var(--green-hi)">${kg1(Math.max(0,lost))}</span></div>
+      <div class="stat"><span class="eyebrow">To 100kg</span><span class="num">${cw>100?kg1(cw-100):'✓'}</span></div>
+      <div class="stat"><span class="eyebrow">To 95kg</span><span class="num">${cw>95?kg1(cw-95):'✓'}</span></div>
+    </div>
+    ${rate!==null?`<p class="small muted">Averaging ${rate>=0?kg1(rate)+'kg lost':kg1(-rate)+'kg gained'} a week. Around 0.5kg a week is a sustainable pace.</p>`:''}
+  </section>
+  <section class="card">
+    <div class="sec-title">Milestones</div>
+    <div class="mile">${MILESTONES.map(m=>`<div class="${S.milestones[m]?'hit':''}"><span class="num">${m}</span><span class="tiny ${S.milestones[m]?'':'faint'}">${S.milestones[m]?fmtDate(S.milestones[m]):'kg'}</span></div>`).join('')}</div>
+  </section>
+  ${bodyCard()}
+  ${wa.length?`<section class="card"><div class="sec-title">Weekly averages</div><div class="tbl-wrap"><table><thead><tr><th>Week of</th><th class="r">Avg</th><th class="r">Change</th><th class="r">Weigh-ins</th></tr></thead><tbody>
+    ${[...wa].reverse().map((w,i,arr)=>{const prev=arr[i+1];const ch=prev?w.avg-prev.avg:null;return `<tr><td>${fmtDate(w.ws)}</td><td class="r">${kg1(w.avg)}</td><td class="r ${ch===null?'':ch<=0?'down':'up'}">${ch===null?'–':(ch>0?'+':'')+kg1(ch)}</td><td class="r">${w.n}</td></tr>`}).join('')}
+  </tbody></table></div></section>`:''}
+  <section class="card">
+    <div class="row between"><div class="sec-title">Weekly review</div>${!wkey?`<button class="btn small" data-action="openReview">Review now</button>`:''}</div>
+    ${wkey&&!S.reviews.some(r=>r.week===wkey)?`<p class="small muted">Your review for the week of ${fmtDate(wkey)} is ready.</p><button class="btn primary" data-action="openReview">Start weekly review</button>`:rv.length?'':`<p class="small muted">Every Sunday you'll be prompted to look back at the week. You get a summary and one thing to focus on next.</p>`}
+    ${rv.map((r,i)=>`<details ${i===0?'open':''} class="ex"><summary><span>Week of ${fmtDate(r.week)}</span><span class="r">${r.weight?kg1(r.weight)+'kg':''}</span></summary>${reviewSummary(r)}</details>`).join('')}
+  </section>
+  <section class="card">
+    <div class="sec-title">Weigh-in history</div>
+    ${ws.length?'':`<p class="small muted">Your starting weight of ${kg1(s.startWeight)}kg is set. Log your first morning weigh-in above.</p>`}<div>${[...ws].reverse().map(w=>`<div class="item"><div class="grow"><div class="t">${kg1(w.kg)} kg</div><div class="s">${fmtDay(w.date)}</div></div><button class="btn small ghost" data-action="delWeight" data-id="${w.id}" aria-label="Delete weigh-in">${ICON.close.replace('<svg','<svg width="14" height="14"')}</button></div>`).join('')}</div>
+  </section>`;
+}
+
+/* ---------- Weekly review ---------- */
+function openReview(){
+  const k=todayKey();
+  const wkey=reviewWeekKey(k)||weekStart(k);
+  const st=weekStats(wkey), existing=S.reviews.find(r=>r.week===wkey)||{};
+  const scale=(name,lo,hi,val)=>`<div class="field"><label>${{nutrition:'How did nutrition go?',snacking:'How did afternoon snacking go?',energy:'Energy levels',sleep:'Sleep quality'}[name]}</label><div class="scale">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="${name}" id="rv_${name}_${n}" value="${n}" ${+val===n?'checked':''}><span>${n}</span></label>`).join('')}</div><div class="scale-ends"><span>${lo}</span><span>${hi}</span></div></div>`;
+  openSheet(`<form data-form="review" class="stack" autocomplete="off">
+    <div><div class="eyebrow">Week of ${fmtDate(wkey)}</div><div class="sec-title" style="margin-top:4px">Weekly review</div></div>
+    <input type="hidden" name="week" value="${wkey}">
+    <div class="grid2">
+      <div class="field"><label for="rv_w">Current weight (kg)</label><input class="input" id="rv_w" name="weight" inputmode="decimal" data-nofocus value="${existing.weight??kg1(currentWeight())}"></div>
+      <div class="field"><label for="rv_s">Avg daily steps</label><input class="input" id="rv_s" name="steps" inputmode="numeric" value="${existing.steps??(st.stepsAvg?Math.round(st.stepsAvg):'')}"></div>
+    </div>
+    <div class="field"><label for="rv_wo">Workouts completed</label><input class="input" id="rv_wo" name="workouts" inputmode="numeric" value="${existing.workouts??st.strength}"></div>
+    <p class="tiny faint">Prefilled from what you logged this week. Change anything that's off.</p>
+    ${scale('nutrition','Rough','Spot on',existing.nutrition)}
+    ${scale('snacking','Grazed all day','In control',existing.snacking)}
+    ${scale('energy','Running on empty','Full of beans',existing.energy)}
+    ${scale('sleep','Barely slept','Well rested',existing.sleep)}
+    <div class="field"><label for="rv_win">Biggest win of the week</label><textarea class="input" id="rv_win" name="win" maxlength="300">${esc(existing.win||'')}</textarea></div>
+    <div class="field"><label for="rv_ch">Biggest challenge</label><textarea class="input" id="rv_ch" name="challenge" maxlength="300">${esc(existing.challenge||'')}</textarea></div>
+    <button class="btn primary block" type="submit">See my summary</button>
+  </form>`);
+}
+function reviewSummary(r){
+  const s=S.settings, st=weekStats(r.week);
+  const prior=[...S.reviews].filter(x=>x.week<r.week&&x.weight).sort((a,b)=>a.week<b.week?1:-1)[0];
+  const base=prior?prior.weight:s.startWeight;
+  const ch=r.weight?r.weight-base:null;
+  const lines=[];
+  if(ch!==null) lines.push(ch<=-0.05?`Weight: down ${kg1(-ch)}kg ${prior?'since last review':'since the start'}. ${ch<-1.2&&prior?'That\'s quick. Make sure you\'re eating enough to train well.':'Right on track.'}`:ch<0.3?`Weight: about level ${prior?'with last week':'with the start'}. Normal. Fluctuations hide progress week to week.`:`Weight: up ${kg1(ch)}kg. Probably water, salt or a heavier weekend. The trend over 3–4 weeks is what counts.`);
+  lines.push(`Habits: ${Math.round(st.habitPct*100)}% of daily habits ticked. ${st.habitPct>=0.7?'Very consistent.':st.habitPct>=0.5?'Solid base to build on.':'Room to build, and that\'s fine.'}`);
+  const wo=+r.workouts||0;
+  lines.push(`Workouts: ${wo} of ${s.workoutsPerWeek} strength sessions. ${wo>=s.workoutsPerWeek?'Target hit.':wo>0?'Some done is better than none.':'This week didn\'t happen. Next week can.'}`);
+  if(r.steps) lines.push(`Steps: averaging ${n0(r.steps)} a day against ${n0(s.steps)}. ${+r.steps>=s.steps?'Brilliant.':+r.steps>=s.steps*0.8?'Close.':'One extra walk a day closes the gap.'}`);
+  if(st.sleepAvg) lines.push(`Sleep: averaging ${fmtHrs(st.sleepAvg)} a night across ${st.sleepDays} night${st.sleepDays===1?'':'s'} recorded.`);
+  const cis=st.days.map(d=>getDay(d).checkin).filter(Boolean);
+  if(cis.length){const fa=avg(cis.map(c=>c.feeling));lines.push(`How you felt: ${FEEL[Math.round(fa)].toLowerCase()} on average across ${cis.length} check-in${cis.length===1?'':'s'}${cis.some(c=>c.wakes>=2)?`, with ${cis.filter(c=>c.wakes>=2).length} broken night${cis.filter(c=>c.wakes>=2).length===1?'':'s'}`:''}.`)}
+  const notes=st.days.map(d=>[d,getDay(d).checkin]).filter(([d,c])=>c&&c.note);
+  lines.push(st.logged?`Nutrition: food logged on ${st.logged} day${st.logged===1?'':'s'}; within your calorie target on ${st.onTarget}, protein target hit on ${st.protHit}.${r.nutrition?` You rated it ${r.nutrition}/5.`:''}`:`Nutrition: ${r.nutrition?`you rated it ${r.nutrition}/5. `:''}Logging food on a few days would make this summary sharper.`);
+  // recommendation
+  const recs=[];
+  const sn=+r.snacking||3, sl=+r.sleep||3, en=+r.energy||3, nu=+r.nutrition||3;
+  if(sl<=2) recs.push([5,'Protect sleep this week. On rough nights, swap strength for a walk and get to bed by 9:30 when you can.']);
+  if(sn<=2) recs.push([4.5,'Plan your 3pm: put a protein snack in the fridge and a 10-minute walk in your calendar for 2:45.']);
+  if(wo<s.workoutsPerWeek) recs.push([4,`Book your strength sessions like meetings, ${s.workoutsPerWeek>=3?'Mon, Wed and Fri':'Mon and Thu'} at 6:30am, and lay your kit out the night before.`]);
+  if(r.steps&&+r.steps<s.steps*0.85) recs.push([3.5,'Add a 15-minute walk after lunch. That\'s roughly 1,800 extra steps a day.']);
+  if(st.logged>=3&&st.protHit<st.logged/2) recs.push([3,'Add protein at breakfast: eggs or Greek yoghurt. It makes the afternoon easier too.']);
+  if(nu<=2) recs.push([3,'Pick two go-to lunches and repeat them. Fewer decisions, fewer slips.']);
+  if(en<=2) recs.push([2.5,'Low energy: check water first, aim for 2.5L, and get outside in daylight before 10am.']);
+  if(!recs.length) recs.push([1,s.rounds<3?'Everything\'s ticking. Next step: try 3 rounds on one workout this week.':s.workoutsPerWeek<3?'Everything\'s ticking. When you\'re ready, build to three strength sessions.':'Everything\'s ticking. Keep the same plan. Boring is working.']);
+  recs.sort((a,b)=>b[0]-a[0]);
+  // calorie adjustment
+  let adj='';
+  const withW=[...S.reviews].filter(x=>x.weight&&x.week<=r.week).sort((a,b)=>a.week<b.week?-1:1);
+  if(withW.length>=3){const first=withW[withW.length-3],last=withW[withW.length-1];const per=(first.weight-last.weight)/Math.max(1,daysBetween(first.week,last.week)/7);
+    if(per<0.2) adj=`Weight has been fairly flat for three reviews. If your logging is accurate, consider trimming your calorie target by about 150 kcal.`;
+    else if(per>1) adj=`You're losing over 1kg a week. Consider adding about 150 kcal so energy and training stay good.`;}
+  return `<div class="stack" style="padding-bottom:14px">
+    <ul class="summary">${lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>
+    ${r.win?`<p class="small"><b>Win:</b> <span class="muted">${esc(r.win)}</span></p>`:''}
+    ${r.challenge?`<p class="small"><b>Challenge:</b> <span class="muted">${esc(r.challenge)}</span></p>`:''}
+    ${notes.length?`<div class="stack" style="gap:4px"><span class="eyebrow">Your check-in notes</span>${notes.map(([d,c])=>`<p class="small"><b>${DOW[parseDk(d).getDay()].slice(0,3)}:</b> <span class="muted">${esc(c.note)}</span></p>`).join('')}</div>`:''}
+    <div class="rec"><div class="eyebrow" style="color:var(--green-hi);margin-bottom:4px">Focus for next week</div>${esc(recs[0][1])}</div>
+    ${adj?`<div class="callout">${esc(adj)} Calorie needs are estimates, so adjust gradually.</div>`:''}
+  </div>`;
+}
+
+/* ---------- Settings & data ---------- */
+function openSettings(){
+  const s=S.settings;
+  const maint=Math.round((10*s.startWeight+6.25*s.heightCm-5*s.age+5)*1.4/10)*10;
+  openSheet(`<form data-form="settings" class="stack" autocomplete="off">
+    <div class="sec-title">Targets</div>
+    <div class="callout">Your estimated maintenance is around <b style="color:var(--fg)">${n0(maint)} kcal</b> (Mifflin-St Jeor formula, lightly active). A target of ${n0(s.kcal)} gives a deficit of roughly ${n0(maint-s.kcal)} kcal a day, about ${kg1((maint-s.kcal)*7/7700)}kg a week. These are estimates, not medical advice. Adjust after a few weekly reviews.</div>
+    <div class="grid2">
+      <div class="field"><label for="s_kcal">Calories / day</label><input class="input" id="s_kcal" name="kcal" inputmode="numeric" data-nofocus value="${s.kcal}"></div>
+      <div class="field"><label for="s_p">Protein (g)</label><input class="input" id="s_p" name="protein" inputmode="numeric" value="${s.protein}"></div>
+      <div class="field"><label for="s_water">Water (litres)</label><input class="input" id="s_water" name="water" inputmode="decimal" value="${s.waterMl/1000}"></div>
+      <div class="field"><label for="s_steps">Steps / day</label><input class="input" id="s_steps" name="steps" inputmode="numeric" value="${s.steps}"></div>
+      <div class="field"><label for="s_target">Target weight (kg)</label><input class="input" id="s_target" name="target" inputmode="decimal" value="${s.target}"></div>
+      <div class="field"><label for="s_stretch">Stretch target (kg)</label><input class="input" id="s_stretch" name="stretch" inputmode="decimal" value="${s.stretch}"></div>
+      <div class="field"><label for="s_rest">Rest between exercises (s)</label><input class="input" id="s_rest" name="restSec" inputmode="numeric" value="${s.restSec}"></div>
+      <div class="field"><label for="s_phase">Training phase</label><select class="input" id="s_phase" name="phase"><option value="0" ${!+s.phase?'selected':''}>Automatic (by week)</option>${[1,2,3].map(n=>`<option value="${n}" ${+s.phase===n?'selected':''}>${n} · ${PHASES[n].name}</option>`).join('')}</select></div>
+      <div class="field"><label for="s_age">Age</label><input class="input" id="s_age" name="age" inputmode="numeric" value="${s.age}"></div>
+    </div>
+    <label class="check" style="border:0"><input type="checkbox" id="s_rundown" name="rundown" ${s.rundown?'checked':''}><span class="box">${TICK}</span><span class="lbl">Offer a morning check-in and daily rundown</span></label>
+    <div class="sec-title" style="margin-top:6px">Programme</div>
+    <div class="grid2">
+      <div class="field"><label for="s_start">Start date</label><input class="input" type="date" id="s_start" name="startDate" value="${s.startDate}"></div>
+      <div class="field"><label for="s_sw">Starting weight (kg)</label><input class="input" id="s_sw" name="startWeight" inputmode="decimal" value="${s.startWeight}"></div>
+      <div class="field"><label for="s_h">Height (cm)</label><input class="input" id="s_h" name="heightCm" inputmode="decimal" value="${s.heightCm}"></div>
+    </div>
+    <button class="btn primary block" type="submit">Save targets</button>
+  </form>
+  <div class="stack">
+    <div class="sec-title">Your data</div>
+    <p class="small muted">${cloudOn()?'Stored on this phone and backed up to your Supabase project.':'Everything is stored on this phone, in this browser. Nothing is sent anywhere unless you turn on cloud sync. Back up now and then.'}</p>
+    <div class="grid2"><button class="btn" data-action="cloud">${cloudOn()?'Cloud sync: on':'Cloud sync'}</button><button class="btn" data-action="nudges">Phone nudges</button></div>
+    <div class="grid2"><button class="btn" data-action="export">Back up data</button><button class="btn" data-action="import">Restore backup</button></div>
+    <div class="callout"><b style="color:var(--fg)">Garmin and Apple Health:</b> web apps can't read Health directly. Use the DAD MODE Shortcut and the Import from Garmin button on Today. <button class="link" data-action="healthHelp">Shortcut setup</button><br><br><b style="color:var(--fg)">Cloud sync later:</b> add a free Supabase project with one table holding this backup JSON per user, then save to it whenever the app saves. That gives you sync across devices.</div>
+    <button class="btn danger block" data-action="reset">Reset programme</button>
+  </div>`);
+}
+function exportData(){
+  const json=JSON.stringify(S,null,1);
+  openSheet(`<div class="sec-title">Back up data</div>
+  <p class="small muted">Copy this text and keep it somewhere safe, such as Notes or an email to yourself. Restore it here any time.</p>
+  <textarea class="input" id="exportTxt" readonly style="min-height:160px;font-size:11px">${esc(json)}</textarea>
+  <div class="grid2"><button class="btn primary" data-action="copyExport">Copy</button><button class="btn" data-action="downloadExport">Download file</button></div>
+  <p class="tiny faint">Download works when the app runs from your own site. Inside Claude, use Copy.</p>`);
+}
+function importData(){
+  openSheet(`<form data-form="import" class="stack"><div class="sec-title">Restore backup</div>
+  <p class="small muted">Paste a backup below, or choose a backup file. This replaces what's on this phone.</p>
+  <textarea class="input" id="importTxt" name="json" placeholder="Paste backup here" style="min-height:140px;font-size:12px"></textarea>
+  <input type="file" id="importFile" accept="application/json,.json,.txt" data-change="importFile" class="small">
+  <button class="btn primary block" type="submit">Restore</button></form>`);
+}
+
+/* ---------- Actions ---------- */
+const A={
+  tab:el=>go(el.dataset.tab),
+  settings:()=>openSettings(),
+  closeSheet:()=>closeSheet(),
+  toggleMission:()=>{const D=ensureDay(todayKey());D.mission=!D.mission;save();render();if(D.mission)toast('Mission complete. Nice one.')},
+  roughNight:()=>{const D=ensureDay(todayKey());D.roughNight=!D.roughNight;save();render();if(D.roughNight)toast('Swapped to a walk. Look after yourself.')},
+  stepsAdd:()=>{const D=ensureDay(todayKey());D.steps+=1000;save();render()},
+  stepsSet:()=>{const D=getDay(todayKey());openSheet(`<form data-form="steps" class="stack" autocomplete="off"><div class="sec-title">Today's steps</div><p class="small muted">Enter today's total from the Health app on your iPhone.</p><div class="field"><label for="st_v">Total steps</label><input class="input" id="st_v" name="steps" inputmode="numeric" value="${D.steps||''}" placeholder="e.g. 8500"></div><button class="btn primary block" type="submit">Save</button></form>`)},
+  water:el=>{const D=ensureDay(todayKey());D.waterMl=Math.max(0,D.waterMl+(+el.dataset.ml));save();render()},
+  crave:()=>{SF={step:'ask',reason:null};if(tab!=='snack')go('snack');else render()},
+  reason:el=>{SF.step='suggest';SF.reason=el.dataset.r;breath=null;render()},
+  snackReset:()=>{SF={step:'start'};breath=null;render()},
+  haveSnack:el=>{const x=SNACKS.find(s=>s.id===el.dataset.id);const r=el.dataset.reason;logSnack(r,'ate',x.name,x.kcal,x.p);
+    if(r==='planned'){toast(`${x.name} added to today's snacks`);render();return}
+    SF={step:'done',msg:`${x.name} added to today's food diary (~${x.kcal} kcal, ~${x.p}g protein). Enjoy it. Plate it, sit down, no guilt.`};breath=null;render()},
+  didAct:el=>{logSnack(SF.reason,'redirected',el.dataset.act,0,0);SF={step:'done',msg:`Nice. "${el.dataset.act}" logged. If you're properly hungry in 20 minutes, have a filling snack. That's fine too.`};breath=null;render()},
+  otherSnack:()=>{openSheet(`<form data-form="otherSnack" class="stack" autocomplete="off"><div class="sec-title">What did you have?</div><p class="small muted">No judgement. Logging it is the habit that matters.</p><div class="field"><label for="os_n">Snack</label><input class="input" id="os_n" name="name" required maxlength="80" placeholder="e.g. 3 chocolate digestives"></div><div class="grid2"><div class="field"><label for="os_k">Calories (est.)</label><input class="input" id="os_k" name="kcal" inputmode="numeric" placeholder="kcal"></div><div class="field"><label for="os_p">Protein (g)</label><input class="input" id="os_p" name="protein" inputmode="decimal" placeholder="g"></div></div><button class="btn primary block" type="submit">Log it</button></form>`)},
+  delSnack:el=>{const x=S.snacks.find(s=>s.id===el.dataset.id);S.snacks=S.snacks.filter(s=>s.id!==el.dataset.id);save();render();toast(x&&x.foodId?'Removed from history. The diary entry stays; edit it in Food.':'Removed')},
+  breath:()=>{if(breath&&!breath.done){breath=null;render();return}initAudio();breath={start:Date.now(),ph:-1};render();tick()},
+  foodDay:el=>{const d=+el.dataset.d;const cur=foodDate||todayKey();foodDate=d===0?null:addDays(cur,d);if(foodDate&&foodDate>=todayKey())foodDate=null;render(true)},
+  addFood:el=>foodSheet({meal:el.dataset.meal}),
+  editFood:el=>{const D=getDay(foodDate||todayKey());const f=D.food.find(x=>x.id===el.dataset.id);if(f)foodSheet(f)},
+  delFood:el=>{const k=foodDate||todayKey();const D=ensureDay(k);D.food=D.food.filter(f=>f.id!==el.dataset.id);save();closeSheet();render();toast('Entry deleted')},
+  quickAdd:el=>{if(el.dataset.fav){const f=S.favourites.find(x=>x.id===el.dataset.fav);if(f)foodSheet({meal:f.meal,name:f.name,kcal:f.kcal,protein:f.protein,ing:f.ing})}else{const ex=(EXAMPLES[el.dataset.meal]||[]).find(x=>x[0]===el.dataset.name);foodSheet({meal:el.dataset.meal,name:el.dataset.name,kcal:+el.dataset.kcal,protein:+el.dataset.p,ing:ex&&ex[3]})}},
+  delFav:el=>{S.favourites=S.favourites.filter(f=>f.id!==el.dataset.id);save();render()},
+  startWorkout:el=>{initAudio();P={w:el.dataset.w,items:itemsFor(el.dataset.w),round:1,idx:0,rounds:S.settings.rounds,start:Date.now(),completedRounds:0,rest:null,timer:null};lockScreen();playerRender()},
+  skipWorkout:el=>{const w=el.dataset.w;openSheet(`<div class="sec-title">Skip ${WORKOUTS[w].name}?</div><p class="small muted">Totally fine. Logging a skip keeps your record honest and helps the weekly review. Why are you skipping?</p><div class="stack" style="gap:8px">${['Rough night with the baby','No time today','Feeling sore','Feeling unwell','Did something else instead'].map(r=>`<button class="opt" data-action="confirmSkip" data-w="${w}" data-r="${r}"><b>${r}</b></button>`).join('')}</div>`)},
+  confirmSkip:el=>{S.workouts.push({id:uid(),ts:Date.now(),date:todayKey(),type:el.dataset.w,label:WORKOUTS[el.dataset.w].name,status:'skipped',note:el.dataset.r});save();closeSheet();render();toast('Skipped. Back at it next time.')},
+  startTimer:()=>{P.timer={end:Date.now()+P.items[P.idx].secs*1000};playerRender()},
+  exDone:()=>{advance();if(P&&!P.finished)playerRender()},
+  restSkip:()=>{P.rest=null;playerRender()},
+  restAdd:()=>{if(P.rest)P.rest.end+=15000;tick()},
+  endAsk:()=>{P.confirmEnd=true;playerRender()},
+  endCancel:()=>{P.confirmEnd=false;playerRender()},
+  endSave:()=>{P.confirmEnd=false;P.completedRounds=Math.max(P.round-1,P.idx>0?1:0)||1;finishWorkout(false)},
+  endDiscard:()=>{P=null;unlockScreen();playerRender();render()},
+  closePlayer:()=>{P=null;unlockScreen();playerRender();render()},
+  setRounds:el=>{S.settings.rounds=+el.dataset.n;save();render()},
+  setFreq:el=>{S.settings.workoutsPerWeek=+el.dataset.n;save();render()},
+  logAct:el=>{const a=el.dataset.a;openSheet(`<form data-form="activity" class="stack" autocomplete="off"><div class="sec-title">${a?'Log a walk':'Log activity'}</div>
+    <div class="field"><label for="a_type">Activity</label><select class="input" id="a_type" name="type">${ACTIVITIES.map(x=>`<option ${x===(a||'Five-a-side football')?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="grid2"><div class="field"><label for="a_min">Minutes</label><input class="input" id="a_min" name="minutes" inputmode="numeric" value="30" required></div><div class="field"><label for="a_date">Date</label><input class="input" type="date" id="a_date" name="date" value="${todayKey()}" max="${todayKey()}"></div></div>
+    <div class="field"><label for="a_note">Note (optional)</label><input class="input" id="a_note" name="note" maxlength="80" placeholder="e.g. pram walk round the village"></div>
+    <button class="btn primary block" type="submit">Save</button></form>`)},
+  delWorkout:el=>{S.workouts=S.workouts.filter(w=>w.id!==el.dataset.id);save();render();toast('Removed')},
+  delWeight:el=>{S.weights=S.weights.filter(w=>w.id!==el.dataset.id);recalcMilestones();save();render();toast('Weigh-in removed')},
+  openReview:()=>openReview(),
+  healthImport:()=>healthSheet(),
+  healthHelp:()=>healthHelp(),
+  checkin:()=>checkinSheet(),
+  nudges:()=>nudgesSheet(),
+  cloud:()=>cloudSheet(),
+  cloudSyncNow:async()=>{const n=await pullHealth(false);const ok=await pushBackup();if(n>=0&&ok)toast(n?`Synced. Garmin data for ${n} day${n===1?'':'s'}.`:'Synced. Backup saved.');render();if(!$('#sheet').hidden)cloudSheet()},
+  cloudRestore:async el=>{if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tap again to replace this phone\'s data';return}
+    try{const d=await rpc('dadmode_load_backup',{p_sync:S.cloud.code});if(!d||!d.settings){toast('No cloud backup found yet');return}const keep=S.cloud;S=migrate(d);S.cloud=keep;saveLocal();closeSheet();render(true);toast('Restored from cloud')}catch(e){toast('Restore failed: '+(e.message||e))}},
+  cloudOff:()=>{S.cloud={};saveLocal();closeSheet();render();toast('Cloud sync turned off')},
+  copyField:el=>{const t=document.getElementById(el.dataset.for);copyStr(t.value,t)},
+  copyText:el=>{const t=document.getElementById(el.dataset.for);copyStr(t.textContent,null)},
+  foodMode:el=>{foodMode=el.dataset.m;if(tab!=='food')go('food');else render(true)},
+  planWeek:el=>{planWeek=+el.dataset.n;render()},
+  planAuto:()=>{const ws=planWs(),P7=planFor7(ws);let n=0;['breakfast','lunch','dinner'].forEach(m=>{const lib=mealLibrary(m);if(!lib.length)return;let i=0;
+    for(let d=0;d<7;d++){const dk2=addDays(ws,d);P7[dk2]=P7[dk2]||{};if(!P7[dk2][m]){const o=lib[(i+d)%lib.length];P7[dk2][m]={name:o.name,kcal:o.kcal,protein:o.protein,ing:o.ing};n++}}i++});
+    save();render();toast(n?`Filled ${n} meals. Swap any you don't fancy.`:'Every slot is already planned')},
+  planClear:el=>{if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tap again to clear';setTimeout(()=>{if(el.isConnected){delete el.dataset.armed;el.textContent='Clear week'}},3000);return}delete S.plans[planWs()];save();render();toast('Week cleared')},
+  shopCopy:()=>{const ws=planWs(),L=shopList(ws),chk=S.shopChecked[ws]||{};const lines=[...L.items.map(x=>x[0]),...L.extra].filter(n=>!chk[n]);if(!lines.length){toast('Nothing left to buy');return}copyStr(`Shopping list (week of ${fmtDate(ws)})\n`+lines.map(x=>'- '+x).join('\n'),null)},
+  shopReset:()=>{S.shopChecked[planWs()]={};save();render()},
+  shopDel:el=>{const ws=planWs();S.shopExtra[ws]=(S.shopExtra[ws]||[]).filter(x=>x!==el.dataset.name);save();render()},
+  logPlanned:el=>{const pt=plannedToday(todayKey())[el.dataset.meal];if(pt)foodSheet({meal:el.dataset.meal,name:pt.name,kcal:pt.kcal,protein:pt.protein,ing:pt.ing})},
+  scan:()=>scanSheet(),
+  scanRetry:()=>startCamera(),
+  scanRecent:el=>{const x=S.scans.find(y=>y.code===el.dataset.code);if(x)productSheet(x)},
+  delWaist:el=>{S.waist=S.waist.filter(w=>w.id!==el.dataset.id);save();render();toast('Measurement removed')},
+  photoView:async el=>{const list=await photoAll()||[];const p=list.find(x=>x.id===el.dataset.id);if(!p)return;openSheet(`<div class="row between"><div class="sec-title">${fmtDay(p.date)}</div></div><img src="${p.data}" alt="Progress photo" style="width:100%;border-radius:14px"><button class="btn danger block" data-action="photoDelete" data-id="${p.id}">Delete photo</button>`)},
+  photoDelete:async el=>{if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tap again to delete';return}await photoDel(el.dataset.id);closeSheet();render();toast('Photo deleted')},
+  skipRundown:()=>{const D=ensureDay(todayKey());D.rundownSkip=true;save();render()},
+  toggleRundown:()=>{rundownOpen=!rundownOpen;render()},
+  swapWalk:()=>{const D=ensureDay(todayKey());D.roughNight=true;save();render();toast('Swapped to a walk. Good call.')},
+  startToday:()=>{const p=planFor(todayKey(),getDay(todayKey()));if(p.kind==='strength')A.startWorkout({dataset:{w:p.w}})},
+  healthPaste:()=>{const fallback=()=>{const t=$('#hl_txt');if(t){t.focus();}toast('Paste the copied line into the box, then tap Import')};
+    try{if(!navigator.clipboard||!navigator.clipboard.readText){fallback();return}
+      navigator.clipboard.readText().then(txt=>{const h=parseHealth(txt);if(!h){toast('No DADMODE line found. Run the Shortcut first.');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},fallback)}catch(e){fallback()}},
+  export:()=>exportData(),
+  import:()=>importData(),
+  copyExport:()=>{const t=$('#exportTxt');const done=()=>toast('Backup copied');try{navigator.clipboard.writeText(t.value).then(done,()=>{t.focus();t.select();toast('Text selected. Tap Copy in the menu.')})}catch(e){t.focus();t.select();toast('Text selected. Tap Copy in the menu.')}},
+  downloadExport:()=>{try{const b=new Blob([JSON.stringify(S)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`dad-mode-backup-${todayKey()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}catch(e){toast('Download not available here. Use Copy.')}},
+  reset:el=>{if(el.dataset.armed){S=defaults();save();P=null;SF={step:'start'};foodDate=null;closeSheet();go('today');render(true);toast('Programme reset. Day one, starting now.')}else{el.dataset.armed='1';el.textContent='Tap again to erase everything';setTimeout(()=>{if(el.isConnected){delete el.dataset.armed;el.textContent='Reset programme'}},4000)}},
+  closeCelebrate:()=>{$('#celebrate').hidden=true}
+};
+function initAudio(){try{if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C()}if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}
+function recalcMilestones(){const ws=weightsSorted();Object.keys(S.milestones).forEach(m=>{const hit=ws.find(w=>w.kg<=+m);if(!hit)delete S.milestones[m];else S.milestones[m]=hit.date})}
+
+const F={
+  food:f=>{const fd=new FormData(f);const name=String(fd.get('name')||'').trim();const kcal=num(fd.get('kcal')),p=num(fd.get('protein'))||0;
+    if(!name||kcal===null||kcal<0||kcal>5000){toast('Add a food name and calories');return}
+    const k=foodDate||todayKey();const D=ensureDay(k);const id=fd.get('id');const meal=fd.get('meal');
+    if(id){const e=D.food.find(x=>x.id===id);if(e)Object.assign(e,{name,kcal:Math.round(kcal),protein:Math.round(p*10)/10,meal})}
+    else D.food.push({id:uid(),meal,name,kcal:Math.round(kcal),protein:Math.round(p*10)/10});
+    const exists=S.favourites.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    const ing=String(fd.get('ing')||'').split(',').map(x=>x.trim()).filter(Boolean).slice(0,15);
+    if(fd.get('fav')){if(exists)Object.assign(exists,{kcal:Math.round(kcal),protein:p,meal,ing});else S.favourites.push({id:uid(),name,kcal:Math.round(kcal),protein:p,meal,ing})}
+    else if(exists&&id){S.favourites=S.favourites.filter(x=>x!==exists)}
+    save();closeSheet();render();toast(id?'Saved':'Added to diary')},
+  steps:f=>{const v=num(new FormData(f).get('steps'));if(v===null||v<0||v>100000){toast('Enter a step count');return}const D=ensureDay(todayKey());D.steps=Math.round(v);save();closeSheet();render();toast(D.steps>=S.settings.steps?'Step target hit. Brilliant.':'Steps saved')},
+  otherSnack:f=>{const fd=new FormData(f);const n=String(fd.get('name')||'').trim();if(!n)return;const k=Math.round(num(fd.get('kcal'))||0),p=num(fd.get('protein'))||0;logSnack(SF.reason||'planned','ate',n,k,p);closeSheet();SF={step:'done',msg:`Logged ${n}${k?` (~${k} kcal)`:''}. That's awareness, and awareness is the whole game. Next meal, carry on as planned.`};render()},
+  weight:f=>{const fd=new FormData(f);const v=num(fd.get('kg'));const date=fd.get('date')||todayKey();
+    if(v===null||v<40||v>250){toast('Enter your weight in kg');return}
+    const prevList=weightsSorted().filter(w=>w.date<date);const prev=prevList[prevList.length-1]||(date>=S.settings.startDate?{kg:S.settings.startWeight}:null);
+    const same=S.weights.find(w=>w.date===date);if(same)same.kg=Math.round(v*10)/10;else S.weights.push({id:uid(),date,kg:Math.round(v*10)/10});
+    const newly=[];MILESTONES.forEach(m=>{if(!S.milestones[m]&&v<=m){S.milestones[m]=date;newly.push(m)}});
+    save();render();
+    if(newly.length){celebrate(Math.min(...newly));return}
+    if(prev){const d=v-prev.kg;toast(d<=-0.1?`Down ${kg1(-d)}kg since last weigh-in`:d<0.1?'Same as last time. Steady.':`Up ${kg1(d)}kg. Normal fluctuation. Watch the average.`)}else toast('Weight saved')},
+  review:f=>{const fd=new FormData(f);const r={week:fd.get('week'),date:todayKey(),weight:num(fd.get('weight')),steps:num(fd.get('steps')),workouts:num(fd.get('workouts'))||0,nutrition:+fd.get('nutrition')||null,snacking:+fd.get('snacking')||null,energy:+fd.get('energy')||null,sleep:+fd.get('sleep')||null,win:String(fd.get('win')||'').trim(),challenge:String(fd.get('challenge')||'').trim()};
+    S.reviews=S.reviews.filter(x=>x.week!==r.week);S.reviews.push(r);
+    if(r.weight&&r.weight>40&&r.weight<250&&!S.weights.some(w=>w.date===r.date)){S.weights.push({id:uid(),date:r.date,kg:Math.round(r.weight*10)/10});MILESTONES.forEach(m=>{if(!S.milestones[m]&&r.weight<=m)S.milestones[m]=r.date})}
+    save();openSheet(`<div class="eyebrow">Week of ${fmtDate(r.week)}</div><div class="sec-title">Your week</div>${reviewSummary(r)}<button class="btn primary block" data-action="closeSheet">Done</button>`);render()},
+  settings:f=>{const fd=new FormData(f), s=S.settings;
+    const g=(n,min,max)=>{const v=num(fd.get(n));return v!==null&&v>=min&&v<=max?v:null};
+    const set=(key,v,tf=x=>x)=>{if(v!==null)s[key]=tf(v)};
+    set('kcal',g('kcal',1200,5000),Math.round);set('protein',g('protein',40,300),Math.round);set('waterMl',g('water',0.5,6),v=>Math.round(v*1000));
+    set('steps',g('steps',1000,40000),Math.round);set('target',g('target',40,250));set('stretch',g('stretch',40,250));set('restSec',g('restSec',10,180),Math.round);
+    s.rundown=!!fd.get('rundown');s.phase=+fd.get('phase')||0;set('age',g('age',16,90),Math.round);set('startWeight',g('startWeight',40,250));set('heightCm',g('heightCm',120,230));
+    const sd=fd.get('startDate');if(sd&&/^\d{4}-\d{2}-\d{2}$/.test(sd))s.startDate=sd;
+    save();closeSheet();render();toast('Targets saved')},
+  activity:f=>{const fd=new FormData(f);const m=num(fd.get('minutes'));if(!m||m<1||m>600){toast('Enter minutes');return}
+    const date=fd.get('date')||todayKey(),type=fd.get('type');
+    S.workouts.push({id:uid(),ts:Date.now(),date,type:'activity',label:type,status:'done',minutes:Math.round(m),note:String(fd.get('note')||'').trim()});
+    const D=ensureDay(date);const p=planFor(date,D);if(p.kind!=='strength'||p.swapped)D.mission=true;
+    save();closeSheet();render();toast(`${type} logged. Every minute counts.`)},
+  shopAdd:f=>{const v=String(new FormData(f).get('item')||'').trim();if(!v)return;const ws=planWs();S.shopExtra[ws]=S.shopExtra[ws]||[];if(!S.shopExtra[ws].includes(v))S.shopExtra[ws].push(v);save();render()},
+  waist:f=>{const fd=new FormData(f);const v=num(fd.get('cm'));const date=fd.get('date')||todayKey();if(v===null||v<50||v>200){toast('Enter your waist in cm');return}
+    const prev=waistSorted().filter(w=>w.date<date).pop();const same=S.waist.find(w=>w.date===date);if(same)same.cm=Math.round(v*10)/10;else S.waist.push({id:uid(),date,cm:Math.round(v*10)/10});save();render();
+    toast(prev?(v<prev.cm?`Down ${kg1(prev.cm-v)}cm. Clothes will notice before the scale does.`:'Saved. Waist moves slowly; check the trend monthly.'):'First measurement saved')},
+  barcode:f=>{lookupBarcode(new FormData(f).get('code'))},
+  product:f=>{const fd=new FormData(f);const k=num(fd.get('kcal100')),p=num(fd.get('p100'))||0,g=num(fd.get('grams'));if(k==null||!g){toast('Enter calories per 100g and an amount');return}
+    const code=fd.get('code');const x=S.scans.find(y=>y.code===code);if(x){x.kcal100=k;x.p100=p}
+    const D=ensureDay(foodDate||todayKey());D.food.push({id:uid(),meal:fd.get('meal'),name:`${x?x.name:'Scanned food'} (${n0(g)}g)`,kcal:Math.round(k*g/100),protein:Math.round(p*g/10)/10});
+    save();closeSheet();render();toast('Added to diary')},
+  cloud:async f=>{const fd=new FormData(f);let url=String(fd.get('url')||'').trim(),key=String(fd.get('key')||'').trim(),code=String(fd.get('code')||'');
+    if(!/^https:\/\/.+/.test(url)||key.length<20){toast('Add your Project URL and anon key');return}
+    const prev=S.cloud;S.cloud=Object.assign({},prev,{url:url.replace(/\/+$/,''),key,code});saveLocal();
+    toast('Testing connection…');const n=await pullHealth(true);
+    if(n<0){toast('Couldn\'t connect: '+S.cloud.error+'. Check the URL, key and that the setup code ran.');cloudSheet();return}
+    await pushBackup();render();cloudSheet();toast('Connected. Cloud sync is on.')},
+  checkin:f=>{const fd=new FormData(f);const feeling=+fd.get('feeling');if(!feeling){toast('Pick how you feel');return}
+    const D=ensureDay(todayKey());const sv=num(fd.get('sleep'));
+    D.checkin={feeling,sleepHrs:sv!=null?sv:null,wakes:+fd.get('wakes')||0,note:String(fd.get('note')||'').trim(),at:Date.now()};
+    D.rundownSkip=false;rundownOpen=true;save();closeSheet();render();},
+  health:f=>{const h=parseHealth(new FormData(f).get('txt'));if(!h){toast('That line needs to start with DADMODE, from the Shortcut');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},
+  import:f=>{const txt=String(new FormData(f).get('json')||'').trim();try{const o=JSON.parse(txt);if(!o||!o.settings||!Array.isArray(o.weights))throw 0;S=migrate(o);save();closeSheet();render(true);toast('Backup restored')}catch(e){toast('That doesn\'t look like a DAD MODE backup')}}
+};
+function celebrate(m){
+  const c=$('#celebrate');
+  c.innerHTML=`<div class="cel"><span class="eyebrow" style="color:var(--green-hi)">Milestone reached</span><div class="cel-ring"><span class="num" style="font-size:52px">${m}</span></div><div class="sec-title" style="font-size:30px">${m}kg</div><p class="muted">${MILE_MSG[m]}</p><button class="btn primary" data-action="closeCelebrate">Get in</button></div>`;
+  c.hidden=false;
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el||el.disabled)return;const fn=A[el.dataset.action];if(fn){e.preventDefault();fn(el,e)}});
+document.addEventListener('submit',e=>{e.preventDefault();const fn=F[e.target.dataset.form];if(fn)fn(e.target)});
+document.addEventListener('change',e=>{const el=e.target;
+  if(el.dataset.change==='habit'){const k=todayKey();const D=ensureDay(k);D.habits[el.dataset.key]=el.checked;save();render()}
+  if(el.dataset.change==='planMeal'){const ws=weekStart(el.dataset.date),P7=planFor7(ws);P7[el.dataset.date]=P7[el.dataset.date]||{};const o=el.value?resolveMeal(el.value,el.dataset.meal):null;
+    if(o)P7[el.dataset.date][el.dataset.meal]={name:o.name,kcal:o.kcal,protein:o.protein,ing:o.ing};else if(el.value==='')delete P7[el.dataset.date][el.dataset.meal];save();render()}
+  if(el.dataset.change==='shopTick'){const ws=planWs();S.shopChecked[ws]=S.shopChecked[ws]||{};S.shopChecked[ws][el.dataset.name]=el.checked;save();render()}
+  if(el.dataset.change==='photoAdd'&&el.files&&el.files[0]){const f=el.files[0];shrinkImage(f).then(data=>photoPut({id:uid(),ts:Date.now(),date:todayKey(),data})).then(()=>{toast('Photo saved');fillPhotos()}).catch(()=>toast('Couldn\'t save that photo here'));el.value=''}
+  if(el.dataset.change==='scanPhoto'&&el.files&&el.files[0]){scanFromFile(el.files[0]);el.value=''}
+  if(el.dataset.change==='importFile'&&el.files&&el.files[0]){const r=new FileReader();r.onload=()=>{$('#importTxt').value=r.result};r.readAsText(el.files[0])}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
+window.addEventListener('hashchange',()=>{const t=readHash();if(t!==tab){tab=t;render(true)}});
+let lastDay=todayKey();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(cloudOn())pullHealth(true).then(n=>{if(n>0&&$('#sheet').hidden&&!P)render()});if(todayKey()!==lastDay){lastDay=todayKey();foodDate=null}if($('#sheet').hidden&&!P)render()}else unlockScreen()});
+setInterval(()=>{if(todayKey()!==lastDay){lastDay=todayKey();if($('#sheet').hidden&&!P)render()}},60000);
+
+const VIEWS={today:viewToday,snack:viewSnack,food:viewFood,train:viewTrain,progress:viewProgress};
+load();tab=readHash();render(true);
+if(cloudOn())pullHealth(true).then(n=>{if(n>0&&$('#sheet').hidden&&!P)render()});
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>
