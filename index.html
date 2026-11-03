@@ -1059,13 +1059,19 @@ function healthCard(k,D){
   if(D.rhr!=null)items.push(['Resting HR',`${Math.round(D.rhr)}`]);
   if(D.activeKcal!=null)items.push(['Active kcal',n0(D.activeKcal)]);
   return `<section class="card" aria-label="Garmin data">
-    <div class="row between"><div><div class="eyebrow">From your Garmin</div><div class="small muted" style="margin-top:2px">${has?`Imported ${new Date(D.healthAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Steps, sleep and heart rate via Apple Health'}</div></div><button class="btn small primary" data-action="healthImport">Import</button></div>
-    ${items.length?`<div class="statrow">${items.map(([l,v])=>`<div class="stat"><span class="eyebrow">${l}</span><span class="num">${v}</span></div>`).join('')}</div>`:`<p class="small muted">Run the DAD MODE Shortcut, then tap Import. <button class="link" data-action="healthHelp">How to set it up</button></p>`}
+    <div class="row between"><div><div class="eyebrow">From your Garmin</div><div class="small muted" style="margin-top:2px">${has?`Imported ${new Date(D.healthAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Steps, sleep and heart rate via Apple Health'}</div></div><button class="btn small primary" data-action="healthPaste">Paste steps</button></div>
+    ${items.length?`<div class="statrow">${items.map(([l,v])=>`<div class="stat"><span class="eyebrow">${l}</span><span class="num">${v}</span></div>`).join('')}</div>`:`<p class="small muted">Run your Dad Health shortcut, then come back and tap Paste steps. <button class="link" data-action="healthHelp">How to set it up</button></p>`}
   </section>`;
 }
 function parseHealth(txt){
   const t=String(txt||'');
-  if(!/DADMODE/i.test(t)) return null;
+  const bare=t.trim().replace(/,/g,'');
+  if(!/DADMODE/i.test(t)){
+    // Plain copy from a shortcut, e.g. "6214", "6,214", "6214.0", "6214 count" or "6 214 steps"
+    if(bare.length>60)return null;
+    const m=bare.replace(/(\d)[\s\u00a0\u202f](?=\d{3}\b)/g,'$1').match(/\d+(\.\d+)?/);
+    if(!m)return null;const v=Math.round(parseFloat(m[0]));return v>=0&&v<100000?{steps:v}:null;
+  }
   const out={};
   const re=/(steps|sleep|active|rhr|date)\s*=\s*([0-9][0-9.,:\-]*)/gi;let m;
   while((m=re.exec(t))){const key=m[1].toLowerCase();let v=m[2].replace(/,(?=\d{3}\b)/g,'');
@@ -1092,8 +1098,8 @@ function applyHealth(h,silent){
 }
 function healthSheet(){
   openSheet(`<form data-form="health" class="stack" autocomplete="off">
-    <div class="sec-title">Import from Garmin</div>
-    <p class="small muted">Run the DAD MODE Shortcut first. It copies a line starting with DADMODE. Then tap Paste and import.</p>
+    <div class="sec-title">Paste your steps</div>
+    <p class="small muted">Your Dad Health shortcut copies today's step total, like copying a phone number. Paste it here.</p>
     <button class="btn primary block" type="button" data-action="healthPaste">Paste and import</button>
     <div class="field"><label for="hl_txt">Or paste it here yourself</label><textarea class="input" id="hl_txt" name="txt" data-nofocus placeholder="DADMODE steps=9500 sleep=7.2 active=520 rhr=58" style="min-height:70px"></textarea></div>
     <button class="btn block" type="submit">Import</button>
@@ -1683,9 +1689,9 @@ const A={
   toggleRundown:()=>{rundownOpen=!rundownOpen;render()},
   swapWalk:()=>{const D=ensureDay(todayKey());D.roughNight=true;save();render();toast('Swapped to a walk. Good call.')},
   startToday:()=>{const p=planFor(todayKey(),getDay(todayKey()));if(p.kind==='strength')A.startWorkout({dataset:{w:p.w}})},
-  healthPaste:()=>{const fallback=()=>{const t=$('#hl_txt');if(t){t.focus();}toast('Paste the copied line into the box, then tap Import')};
+  healthPaste:()=>{const fallback=()=>{if(!$('#hl_txt'))healthSheet();const t=$('#hl_txt');if(t){t.focus();}toast('Paste the number into the box, then tap Import')};
     try{if(!navigator.clipboard||!navigator.clipboard.readText){fallback();return}
-      navigator.clipboard.readText().then(txt=>{const h=parseHealth(txt);if(!h){toast('No DADMODE line found. Run the Shortcut first.');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},fallback)}catch(e){fallback()}},
+      navigator.clipboard.readText().then(txt=>{const h=parseHealth(txt);if(!h){toast('No steps copied yet. Run your Dad Health shortcut first, then tap Paste steps.');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},fallback)}catch(e){fallback()}},
   export:()=>exportData(),
   import:()=>importData(),
   copyExport:()=>{const t=$('#exportTxt');const done=()=>toast('Backup copied');try{navigator.clipboard.writeText(t.value).then(done,()=>{t.focus();t.select();toast('Text selected. Tap Copy in the menu.')})}catch(e){t.focus();t.select();toast('Text selected. Tap Copy in the menu.')}},
@@ -1753,7 +1759,7 @@ const F={
     const D=ensureDay(todayKey());const sv=num(fd.get('sleep'));
     D.checkin={feeling,sleepHrs:sv!=null?sv:null,wakes:+fd.get('wakes')||0,note:String(fd.get('note')||'').trim(),at:Date.now()};
     D.rundownSkip=false;rundownOpen=true;save();closeSheet();render();},
-  health:f=>{const h=parseHealth(new FormData(f).get('txt'));if(!h){toast('That line needs to start with DADMODE, from the Shortcut');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},
+  health:f=>{const h=parseHealth(new FormData(f).get('txt'));if(!h){toast('Couldn\'t find a step number in that. Paste what your shortcut copied, e.g. 6214.');return}const msg=applyHealth(h);closeSheet();render();toast(`Imported: ${msg}`)},
   import:f=>{const txt=String(new FormData(f).get('json')||'').trim();try{const o=JSON.parse(txt);if(!o||!o.settings||!Array.isArray(o.weights))throw 0;S=migrate(o);save();closeSheet();render(true);toast('Backup restored')}catch(e){toast('That doesn\'t look like a DAD MODE backup')}}
 };
 function celebrate(m){
